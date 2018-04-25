@@ -1,5 +1,10 @@
+dist: trusty
 sudo: false
 language: ruby
 rvm:
   - 2.3.3
-before_install: gem install bundler -v 1.16.0
+addons:
+  chrome: stable
+before_install:
+  - gem install bundler -v 1.16.0
+  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
