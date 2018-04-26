@@ -33,6 +33,8 @@ Dragonfly.app.configure do
 end
 ```
 
+Optionally include host & port in case you are connecting to running Chrome (recommended).
+
 ```ruby
 Dragonfly.app.configure do
   plugin :puppeteer, host: 'chrome_headless', port: '9222'
