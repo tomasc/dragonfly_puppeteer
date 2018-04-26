@@ -5,7 +5,7 @@ module DragonflyPuppeteer
       app.env[:host] = options[:host]
       app.env[:port] = options[:port]
 
-      # app.add_processor :rasterize, DragonflyChromeHeadless::Processors::Rasterize.new
+      app.add_generator :screenshot, DragonflyPuppeteer::Generators::Screenshot.new
     end
   end
 end
