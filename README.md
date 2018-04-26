@@ -44,22 +44,29 @@ end
 ```ruby
 Dragonfly.app.generate(
   :screenshot,
-  
+
   "https://www.google.com",
 
   "format" => "png",
-  "delay" => 0, # additional delay before taking screenshot
 
+  # default value, additional delay before taking screenshot
+  "delay" => 0,
+
+  # default values
   "viewport_opts" => {
     "width" => 1200,
     "height" => 800,
     "isMobile" => false,
     "deviceScaleFactor" => 2
   },
+
+  # default values
   "screenshot_opts" => {
     "fullPage" => true,
     "omitBackground" => false
   },
+
+  # default values
   "goto_opts" => {
     "waitUntil" => "networkidle2"
   }
