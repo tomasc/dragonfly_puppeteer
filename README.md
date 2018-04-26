@@ -39,6 +39,35 @@ Dragonfly.app.configure do
 end
 ```
 
+### Screenshot generator
+
+```ruby
+Dragonfly.app.generate(
+  :screenshot,
+  "https://www.google.com",
+  "format" => "png",
+  "delay" => 0, # additional delay before taking screenshot
+  "viewport_opts" => {
+    "width" => 1200,
+    "height" => 800,
+    "isMobile" => false,
+    "deviceScaleFactor" => 2
+  },
+  "screenshot_opts" => {
+    "fullPage" => true,
+    "omitBackground" => false
+  },
+  "goto_opts" => {
+    "waitUntil" => "networkidle2"
+  }
+)
+```
+
+For list of all options see Puppeteer API docs:
+* [`page.setViewport`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagesetviewportviewport)
+* [`page.screenshot`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
+* [`page.goto`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options)
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

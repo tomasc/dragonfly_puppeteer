@@ -15,14 +15,15 @@ module DragonflyPuppeteer
         screenshot_opts[:type] = (format == 'jpg' ? 'jpeg' : format)
         goto_opts = extract_goto_opts(opts)
 
+        delay = extract_delay(opts)
+
         node_command = content.env.fetch(:node_command, 'node')
         # options[:host] ||= content.env[:host]
         # options[:port] ||= content.env[:port]
 
         content.shell_generate(ext: format) do |path|
           screenshot_opts[:path] = path
-          # p '---', "#{node_command} #{script} #{url} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}'"
-          "#{node_command} #{script} #{url} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}'"
+          "#{node_command} #{script} #{url} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' #{delay}"
         end
         content.add_meta('format' => format)
       end
@@ -35,6 +36,10 @@ module DragonflyPuppeteer
 
       def extract_format(opts)
         opts['format'] || 'png'
+      end
+
+      def extract_delay(opts)
+        opts['delay'] || 0
       end
 
       def extract_viewport_opts(opts)
