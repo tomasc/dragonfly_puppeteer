@@ -47,6 +47,7 @@ Dragonfly.app.generate(
 
   "https://www.google.com",
 
+  # default value
   "format" => "png",
 
   # default value, additional delay before taking screenshot
