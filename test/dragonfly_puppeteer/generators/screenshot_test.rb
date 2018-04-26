@@ -26,21 +26,22 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     let(:height) { 600 }
     let(:viewport_opts) { { width: width, height: height } }
 
+    before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
+
     describe 'width' do
-      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
       it { image_properties(screenshot)[:width].must_equal width }
     end
 
     describe 'height' do
       let(:height) { 200 }
-      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
+
       it { image_properties(screenshot)[:height].must_equal height }
     end
 
     describe 'deviceScaleFactor' do
       let(:deviceScaleFactor) { 2 }
       let(:viewport_opts) { { width: width, height: height, deviceScaleFactor: deviceScaleFactor } }
-      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
+
       it { image_properties(screenshot)[:width].must_equal width * 2 }
       it { image_properties(screenshot)[:height].must_equal height * 2 }
     end
