@@ -2,6 +2,11 @@
 
 [![Build Status](https://travis-ci.org/tomasc/dragonfly_puppeteer.svg)](https://travis-ci.org/tomasc/dragonfly_puppeteer) [![Gem Version](https://badge.fury.io/rb/dragonfly_puppeteer.svg)](http://badge.fury.io/rb/dragonfly_puppeteer) [![Coverage Status](https://img.shields.io/coveralls/tomasc/dragonfly_puppeteer.svg)](https://coveralls.io/r/tomasc/dragonfly_puppeteer)
 
+## Requirements
+
+* node
+* Chrome headless
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -20,7 +25,19 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Add the plugin to Dragonfly:
+
+```ruby
+Dragonfly.app.configure do
+  plugin :puppeteer
+end
+```
+
+```ruby
+Dragonfly.app.configure do
+  plugin :puppeteer, host: 'chrome_headless', port: '9222'
+end
+```
 
 ## Development
 
