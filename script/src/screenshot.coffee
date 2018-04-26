@@ -20,7 +20,6 @@ screenshot = ->
   page = await browser.newPage()
   page.setViewport(viewportOptions)
 
-  # await page.setContent("<html><head></head><body>MOO</body></html>")
   await page.goto(url, gotoOptions)
   await sleep(delay)
   await page.screenshot(screenshotOptions)
