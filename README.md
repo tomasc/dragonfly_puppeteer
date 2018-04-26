@@ -76,7 +76,7 @@ Dragonfly.app.generate(
 )
 ```
 
-For list of all options see Puppeteer API docs:
+For more details see Puppeteer API docs:
 * [`page.setViewport`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagesetviewportviewport)
 * [`page.screenshot`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
 * [`page.goto`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options)
