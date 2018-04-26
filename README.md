@@ -44,9 +44,12 @@ end
 ```ruby
 Dragonfly.app.generate(
   :screenshot,
+  
   "https://www.google.com",
+
   "format" => "png",
   "delay" => 0, # additional delay before taking screenshot
+
   "viewport_opts" => {
     "width" => 1200,
     "height" => 800,
