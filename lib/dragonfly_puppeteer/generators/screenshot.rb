@@ -44,16 +44,16 @@ module DragonflyPuppeteer
 
       def extract_viewport_opts(opts)
         opts['viewport_opts'] || {
-          width: 1200,
+          width: 1280,
           height: 800,
           isMobile: false,
-          deviceScaleFactor: 2
+          deviceScaleFactor: 1
         }
       end
 
       def extract_screenshot_opts(opts)
         opts['screenshot_opts'] || {
-          fullPage: true,
+          fullPage: false,
           omitBackground: false,
           # quality: 100
         }

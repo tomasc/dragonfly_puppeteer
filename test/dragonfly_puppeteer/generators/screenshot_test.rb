@@ -22,27 +22,25 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   end
 
   describe 'viewport_opts' do
-    let(:screenshot_opts) { { fullPage: false } }
+    let(:width) { 800 }
+    let(:height) { 600 }
+    let(:viewport_opts) { { width: width, height: height } }
 
     describe 'width' do
-      let(:width) { 800 }
-      let(:viewport_opts) { { width: width } }
-      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
+      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
       it { image_properties(screenshot)[:width].must_equal width }
     end
 
     describe 'height' do
       let(:height) { 200 }
-      let(:viewport_opts) { { width: 800, height: height } }
-      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
+      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
       it { image_properties(screenshot)[:height].must_equal height }
     end
 
     describe 'deviceScaleFactor' do
-      let(:width) { 800 }
-      let(:height) { 200 }
-      let(:viewport_opts) { { width: width, height: height, deviceScaleFactor: 2 } }
-      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
+      let(:deviceScaleFactor) { 2 }
+      let(:viewport_opts) { { width: width, height: height, deviceScaleFactor: deviceScaleFactor } }
+      before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
       it { image_properties(screenshot)[:width].must_equal width * 2 }
       it { image_properties(screenshot)[:height].must_equal height * 2 }
     end

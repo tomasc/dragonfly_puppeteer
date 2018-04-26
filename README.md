@@ -57,15 +57,15 @@ Dragonfly.app.generate(
 
   # default values
   "viewport_opts" => {
-    "width" => 1200,
+    "width" => 1280,
     "height" => 800,
     "isMobile" => false,
-    "deviceScaleFactor" => 2
+    "deviceScaleFactor" => 1
   },
 
   # default values
   "screenshot_opts" => {
-    "fullPage" => true,
+    "fullPage" => false,
     "omitBackground" => false
   },
 
