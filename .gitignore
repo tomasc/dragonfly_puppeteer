@@ -13,6 +13,7 @@
 !/node_modules/extract-zip
 !/node_modules/https-proxy-agent
 !/node_modules/mime
+!/node_modules/ms
 !/node_modules/progress
 !/node_modules/proxy-from-env
 !/node_modules/puppeteer
