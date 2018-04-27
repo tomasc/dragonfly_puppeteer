@@ -6,5 +6,16 @@
 /pkg/
 /spec/reports/
 /tmp/
-/node_modules
 /*.log
+
+/node_modules/*
+!/node_modules/debug
+!/node_modules/extract-zip
+!/node_modules/https-proxy-agent
+!/node_modules/mime
+!/node_modules/progress
+!/node_modules/proxy-from-env
+!/node_modules/puppeteer
+!/node_modules/rimraf
+!/node_modules/ws
+/node_modules/puppeteer/.local-chromium

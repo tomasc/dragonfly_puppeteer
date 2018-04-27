@@ -7,5 +7,4 @@ addons:
   chrome: stable
 before_install:
   - gem install bundler -v 1.16.0
-  - yarn
   - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
