@@ -44,6 +44,16 @@ end
 ### Screenshot generator
 
 ```ruby
+Dragonfly.app.generate(:screenshot, source, opts)
+```
+
+The `source` can be:
+* url (such as https://www.google.com)
+* HTML string (such as `<html><head></head><body>TEST</body></html>`)
+
+With options:
+
+```ruby
 Dragonfly.app.generate(
   :screenshot,
 

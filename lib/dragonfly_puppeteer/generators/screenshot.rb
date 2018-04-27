@@ -6,7 +6,7 @@ module DragonflyPuppeteer
 
       class UnsupportedFormat < RuntimeError; end
 
-      def call(content, url, opts = {})
+      def call(content, source, opts = {})
         format = extract_format(opts)
         raise UnsupportedFormat unless %w[jpg png].include?(format.to_s)
 
@@ -23,12 +23,12 @@ module DragonflyPuppeteer
 
         content.shell_generate(ext: format) do |path|
           screenshot_opts[:path] = path
-          "#{node_command} #{script} #{url} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' #{delay}"
+          "#{node_command} #{script} #{Shellwords.escape(source)} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' #{delay}"
         end
         content.add_meta('format' => format)
       end
 
-      def update_url(url_attributes, url, opts = {})
+      def update_url(url_attributes, source, opts = {})
         url_attributes.name = "screenshot.#{extract_format(opts)}"
       end
 

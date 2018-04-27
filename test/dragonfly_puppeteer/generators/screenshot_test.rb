@@ -5,17 +5,17 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   let(:app) { test_app.configure_with(:puppeteer) }
   let(:screenshot) { Dragonfly::Content.new(app) }
 
-  let(:url) { 'https://www.google.com' }
+  let(:source) { 'https://www.google.com' }
 
   describe 'formats' do
     describe 'png' do
-      before { generator.call(screenshot, url, 'format' => 'png') }
+      before { generator.call(screenshot, source, 'format' => 'png') }
       it { get_mime_type(screenshot.path).must_include "image/png" }
       it { screenshot.meta.must_equal({"format" => "png"}) }
     end
 
     describe 'jpg' do
-      before { generator.call(screenshot, url, 'format' => 'jpg') }
+      before { generator.call(screenshot, source, 'format' => 'jpg') }
       it { get_mime_type(screenshot.path).must_include "image/jpeg" }
       it { screenshot.meta.must_equal({"format" => "jpg"}) }
     end
@@ -26,7 +26,7 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     let(:height) { 600 }
     let(:viewport_opts) { { width: width, height: height } }
 
-    before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts) }
+    before { generator.call(screenshot, source, 'viewport_opts' => viewport_opts) }
 
     describe 'width' do
       it { image_properties(screenshot)[:width].must_equal width }
@@ -53,7 +53,7 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     let(:viewport_opts) { { width: width } }
     let(:screenshot_opts) { {} }
 
-    before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
+    before { generator.call(screenshot, source, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
 
     describe 'fullPage' do
       let(:screenshot_opts) { { fullPage: true } }
@@ -61,6 +61,23 @@ describe DragonflyPuppeteer::Generators::Screenshot do
       it { image_properties(screenshot)[:width].must_be :>, width }
       it { image_properties(screenshot)[:height].must_be :>, height }
     end
+  end
+
+  describe 'html string' do
+    let(:actual_height) { 1200 }
+    let(:screenshot_opts) { { fullPage: true } }
+    let(:source) { %Q{
+      <html>
+        <head></head>
+        <body style="height: #{actual_height}px; margin: 0;">
+          TEST
+        </body>
+      </html>
+    } }
+
+    before { generator.call(screenshot, source, 'screenshot_opts' => screenshot_opts) }
+
+    it { image_properties(screenshot)[:height].must_equal actual_height }
   end
 
   # ---------------------------------------------------------------------

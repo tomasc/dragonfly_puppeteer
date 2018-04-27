@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer'
 
 args = process.argv.slice(2)
 
-url = args[0]
+source = args[0]
 viewportOptions = JSON.parse(args[1])
 screenshotOptions = JSON.parse(args[2])
 gotoOptions = JSON.parse(args[3])
@@ -19,7 +19,11 @@ screenshot = ->
   page = await browser.newPage()
   page.setViewport(viewportOptions)
 
-  await page.goto(url, gotoOptions)
+  if source.startsWith('http')
+    await page.goto(source, gotoOptions)
+  else
+    await page.setContent(source)
+
   await sleep(delay)
   await page.screenshot(screenshotOptions)
   await browser.close()
