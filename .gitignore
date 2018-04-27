@@ -11,6 +11,7 @@
 /node_modules/*
 !/node_modules/debug
 !/node_modules/extract-zip
+!/node_modules/glob
 !/node_modules/https-proxy-agent
 !/node_modules/mime
 !/node_modules/ms
