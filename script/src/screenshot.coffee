@@ -6,7 +6,8 @@ source = args[0]
 viewportOptions = JSON.parse(args[1])
 screenshotOptions = JSON.parse(args[2])
 gotoOptions = JSON.parse(args[3])
-delay = args[4]
+httpHeaders = JSON.parse(args[4])
+delay = args[5]
 
 sleep = (ms) ->
   ms = (ms) ? ms : 0;
@@ -17,7 +18,8 @@ screenshot = ->
     args: ['--no-sandbox', '--disable-setuid-sandbox']
 
   page = await browser.newPage()
-  page.setViewport(viewportOptions)
+  await page.setViewport(viewportOptions)
+  await page.setExtraHTTPHeaders(httpHeaders)
 
   if source.startsWith('http')
     await page.goto(source, gotoOptions)

@@ -14,6 +14,7 @@ module DragonflyPuppeteer
         screenshot_opts = extract_screenshot_opts(opts)
         screenshot_opts[:type] = (format == 'jpg' ? 'jpeg' : format)
         goto_opts = extract_goto_opts(opts)
+        http_headers = extract_http_headers(opts)
 
         delay = extract_delay(opts)
 
@@ -23,7 +24,7 @@ module DragonflyPuppeteer
 
         content.shell_generate(ext: format) do |path|
           screenshot_opts[:path] = path
-          "#{node_command} #{script} #{Shellwords.escape(source)} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' #{delay}"
+          "#{node_command} #{script} #{Shellwords.escape(source)} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' '#{http_headers.to_json}' #{delay}"
         end
         content.add_meta('format' => format)
       end
@@ -36,10 +37,6 @@ module DragonflyPuppeteer
 
       def extract_format(opts)
         opts['format'] || 'png'
-      end
-
-      def extract_delay(opts)
-        opts['delay'] || 0
       end
 
       def extract_viewport_opts(opts)
@@ -63,6 +60,14 @@ module DragonflyPuppeteer
         opts['goto_opts'] || {
           waitUntil: 'networkidle2'
         }
+      end
+
+      def extract_http_headers(opts)
+        opts['http_headers'] || {}
+      end
+
+      def extract_delay(opts)
+        opts['delay'] || 0
       end
 
       def script

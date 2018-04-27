@@ -71,7 +71,10 @@ Dragonfly.app.generate(
   },
 
   # default value
-  "media_type" => "null"
+  "media_type" => "null",
+
+  # default value
+  "http_headers" => {}
 )
 ```
 
@@ -79,6 +82,7 @@ For list of options see Puppeteer API docs:
 * [`page.pdf`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions)
 * [`page.goto`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options)
 * [`page.emulateMedia`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageemulatemediamediatype)
+* [`page.setExtraHTTPHeaders`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagesetextrahttpheadersheaders)
 
 ### Screenshot generator
 
@@ -121,7 +125,10 @@ Dragonfly.app.generate(
   # default values
   "goto_opts" => {
     "waitUntil" => "networkidle2"
-  }
+  },
+
+  # default value
+  "http_headers" => {}
 )
 ```
 
@@ -129,6 +136,7 @@ For list of options see Puppeteer API docs:
 * [`page.setViewport`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagesetviewportviewport)
 * [`page.screenshot`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
 * [`page.goto`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options)
+* [`page.setExtraHTTPHeaders`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagesetextrahttpheadersheaders)
 
 ## Development
 

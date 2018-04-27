@@ -6,7 +6,8 @@ source = args[0]
 pdfOptions = JSON.parse(args[1])
 gotoOptions = JSON.parse(args[2])
 mediaType = args[3]
-delay = args[4]
+httpHeaders = JSON.parse(args[4])
+delay = args[5]
 
 unless mediaType in ['screen', 'print']
   mediaType = null
@@ -20,7 +21,8 @@ pdf = ->
     args: ['--no-sandbox', '--disable-setuid-sandbox']
 
   page = await browser.newPage()
-  page.emulateMedia(mediaType)
+  await page.setExtraHTTPHeaders(httpHeaders)
+  await page.emulateMedia(mediaType)
 
   if source.startsWith('http')
     await page.goto(source, gotoOptions)

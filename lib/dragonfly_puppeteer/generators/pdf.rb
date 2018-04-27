@@ -11,9 +11,10 @@ module DragonflyPuppeteer
 
         pdf_opts = extract_pdf_opts(opts)
         goto_opts = extract_goto_opts(opts)
+        media_type = extract_media_type(opts)
+        http_headers = extract_http_headers(opts)
 
         delay = extract_delay(opts)
-        media_type = extract_media_type(opts)
 
         node_command = content.env.fetch(:node_command, 'node')
         # options[:host] ||= content.env[:host]
@@ -21,7 +22,7 @@ module DragonflyPuppeteer
 
         content.shell_generate(ext: format) do |path|
           pdf_opts[:path] = path
-          "#{node_command} #{script} #{Shellwords.escape(source)} '#{pdf_opts.to_json}' '#{goto_opts.to_json}' #{media_type} #{delay}"
+          "#{node_command} #{script} #{Shellwords.escape(source)} '#{pdf_opts.to_json}' '#{goto_opts.to_json}' #{media_type} '#{http_headers.to_json}' #{delay}"
         end
         content.add_meta('format' => 'pdf')
       end
@@ -31,10 +32,6 @@ module DragonflyPuppeteer
       end
 
       private
-
-      def extract_delay(opts)
-        opts['delay'] || 0
-      end
 
       def extract_goto_opts(opts)
         opts['goto_opts'] || {
@@ -48,6 +45,14 @@ module DragonflyPuppeteer
 
       def extract_media_type(opts)
         opts['media_type'] || 'null'
+      end
+
+      def extract_http_headers(opts)
+        opts['http_headers'] || {}
+      end
+
+      def extract_delay(opts)
+        opts['delay'] || 0
       end
 
       def script
