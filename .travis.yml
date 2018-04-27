@@ -3,8 +3,11 @@ sudo: false
 language: ruby
 rvm:
   - 2.3.3
-addons:
-  chrome: stable
+env:
+  - CHROME_HEADLESS_HOST=localhost CHROME_HEADLESS_PORT=9222
+services:
+  - docker
 before_install:
   - gem install bundler -v 1.16.0
-  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+  - docker pull alpeware/chrome-headless-trunk
+  - docker run -d --rm -p=9222:9222 alpeware/chrome-headless-trunk
