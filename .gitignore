@@ -9,6 +9,7 @@
 /*.log
 
 /node_modules/*
+!/node_modules/brace-expansion
 !/node_modules/debug
 !/node_modules/extract-zip
 !/node_modules/fs.realpath
