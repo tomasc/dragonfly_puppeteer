@@ -15,6 +15,7 @@
 !/node_modules/glob
 !/node_modules/https-proxy-agent
 !/node_modules/mime
+!/node_modules/minimatch
 !/node_modules/ms
 !/node_modules/progress
 !/node_modules/proxy-from-env
