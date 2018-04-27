@@ -47,6 +47,22 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     end
   end
 
+  describe 'screenshot_opts' do
+    let(:width) { 200 }
+    let(:height) { 200 }
+    let(:viewport_opts) { { width: width } }
+    let(:screenshot_opts) { {} }
+
+    before { generator.call(screenshot, url, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
+
+    describe 'fullPage' do
+      let(:screenshot_opts) { { fullPage: true } }
+
+      it { image_properties(screenshot)[:width].must_be :>, width }
+      it { image_properties(screenshot)[:height].must_be :>, height }
+    end
+  end
+
   # ---------------------------------------------------------------------
 
   def get_mime_type(file_path)
