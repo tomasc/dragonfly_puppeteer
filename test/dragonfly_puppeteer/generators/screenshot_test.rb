@@ -4,29 +4,45 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   let(:generator) { DragonflyPuppeteer::Generators::Screenshot.new }
   let(:app) { test_app.configure_with(:puppeteer) }
   let(:content) { Dragonfly::Content.new(app) }
+  let(:div_width) { 1200 }
+  let(:div_height) { 1200 }
+  let(:source) { %Q{
+    <html>
+      <head>
+        <style type="text/css">
+          body { margin: 0; }
+          .test { width: #{div_width}px; height: #{div_height}px; }
+        </style>
+      </head>
+      <body>
+        <div class="test">TEST</div>
+      </body>
+    </html>
+  } }
+  let(:opts) { {} }
 
-  let(:source) { 'https://www.google.com' }
+  before { generator.call(content, source, opts) }
 
   describe 'formats' do
     describe 'png' do
-      before { generator.call(content, source, 'format' => 'png') }
+      let(:opts) { { 'format' => 'png' } }
+
       it { get_mime_type(content.path).must_include "image/png" }
-      it { content.meta.must_equal({"format" => "png"}) }
+      it { content.meta.must_equal("format" => "png") }
     end
 
     describe 'jpg' do
-      before { generator.call(content, source, 'format' => 'jpg') }
+      let(:opts) { { 'format' => 'jpg' } }
+
       it { get_mime_type(content.path).must_include "image/jpeg" }
-      it { content.meta.must_equal({"format" => "jpg"}) }
+      it { content.meta.must_equal("format" => "jpg") }
     end
   end
 
   describe 'viewport_opts' do
     let(:width) { 800 }
     let(:height) { 600 }
-    let(:viewport_opts) { { width: width, height: height } }
-
-    before { generator.call(content, source, 'viewport_opts' => viewport_opts) }
+    let(:opts) { { 'viewport_opts' => { width: width, height: height } } }
 
     describe 'width' do
       it { image_properties(content)[:width].must_equal width }
@@ -40,7 +56,7 @@ describe DragonflyPuppeteer::Generators::Screenshot do
 
     describe 'deviceScaleFactor' do
       let(:deviceScaleFactor) { 2 }
-      let(:viewport_opts) { { width: width, height: height, deviceScaleFactor: deviceScaleFactor } }
+      let(:opts) { { 'viewport_opts' => { width: width, height: height, deviceScaleFactor: deviceScaleFactor } } }
 
       it { image_properties(content)[:width].must_equal width * 2 }
       it { image_properties(content)[:height].must_equal height * 2 }
@@ -48,36 +64,20 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   end
 
   describe 'screenshot_opts' do
-    let(:width) { 200 }
-    let(:height) { 200 }
-    let(:viewport_opts) { { width: width } }
-    let(:screenshot_opts) { {} }
-
-    before { generator.call(content, source, 'viewport_opts' => viewport_opts, 'screenshot_opts' => screenshot_opts) }
-
     describe 'fullPage' do
-      let(:screenshot_opts) { { fullPage: true } }
+      let(:width) { 200 }
+      let(:height) { 200 }
+      let(:opts) { { 'viewport_opts' => { width: width, height: height }, 'screenshot_opts' => { fullPage: true } } }
 
-      it { image_properties(content)[:width].must_be :>, width }
-      it { image_properties(content)[:height].must_be :>, height }
+      it { image_properties(content)[:width].must_be :>=, div_width }
+      it { image_properties(content)[:height].must_be :>=, div_height }
     end
   end
 
-  describe 'html string' do
-    let(:actual_height) { 1200 }
-    let(:screenshot_opts) { { fullPage: true } }
-    let(:source) { %Q{
-      <html>
-        <head></head>
-        <body style="height: #{actual_height}px; margin: 0;">
-          TEST
-        </body>
-      </html>
-    } }
+  describe 'URL source' do
+    let(:source) { 'https://www.google.com' }
 
-    before { generator.call(content, source, 'screenshot_opts' => screenshot_opts) }
-
-    it { image_properties(content)[:height].must_equal actual_height }
+    it { get_mime_type(content.path).must_include "image/png" }
   end
 
   # ---------------------------------------------------------------------
