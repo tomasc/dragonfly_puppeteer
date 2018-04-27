@@ -62,7 +62,7 @@ Dragonfly.app.generate(
   # default value, additional delay before saving PDF
   "delay" => 0,
 
-  # default values
+  # default value
   "pdf_opts" => {},
 
   # default values
