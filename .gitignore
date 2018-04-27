@@ -8,21 +8,4 @@
 /tmp/
 /*.log
 
-/node_modules/*
-!/node_modules/brace-expansion
-!/node_modules/debug
-!/node_modules/extract-zip
-!/node_modules/fs.realpath
-!/node_modules/glob
-!/node_modules/https-proxy-agent
-!/node_modules/mime
-!/node_modules/minimatch
-!/node_modules/ms
-!/node_modules/progress
-!/node_modules/proxy-from-env
-!/node_modules/puppeteer
-!/node_modules/request
-!/node_modules/request-promise-native
-!/node_modules/rimraf
-!/node_modules/ws
 /node_modules/puppeteer/.local-chromium
