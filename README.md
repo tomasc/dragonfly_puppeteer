@@ -41,6 +41,45 @@ Dragonfly.app.configure do
 end
 ```
 
+### PDF generator
+
+```ruby
+Dragonfly.app.generate(:pdf, source, opts)
+```
+
+The `source` can be:
+* url (such as https://www.google.com)
+* HTML string (such as `<html><head></head><body>TEST</body></html>`)
+
+With options:
+
+```ruby
+Dragonfly.app.generate(
+  :screenshot,
+
+  "https://www.google.com",
+
+  # default value, additional delay before saving PDF
+  "delay" => 0,
+
+  # default values
+  "pdf_opts" => {},
+
+  # default values
+  "goto_opts" => {
+    "waitUntil" => "networkidle2"
+  },
+
+  # default value
+  "media_type" => "null"
+)
+```
+
+For list of options see Puppeteer API docs:
+* [`page.pdf`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions)
+* [`page.goto`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options)
+* [`page.emulateMedia`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageemulatemediamediatype)
+
 ### Screenshot generator
 
 ```ruby
@@ -86,7 +125,7 @@ Dragonfly.app.generate(
 )
 ```
 
-For more details see Puppeteer API docs:
+For list of options see Puppeteer API docs:
 * [`page.setViewport`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagesetviewportviewport)
 * [`page.screenshot`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
 * [`page.goto`](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagegotourl-options)

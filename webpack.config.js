@@ -14,15 +14,16 @@ module.exports = {
     ],
   },
   entry: {
+    pdf: './script/src/pdf.coffee',
     screenshot: './script/src/screenshot.coffee'
   },
   target: 'node',
   externals: [nodeExternals()],
   output: {
+    filename: '[name].js',
     library: '@tomasc/dragonfly_puppeteer',
     libraryTarget: 'umd',
-    umdNamedDefine: true,
-    filename: '[name].js',
-    path: path.resolve(__dirname, 'script/dist')
+    path: path.resolve(__dirname, 'script/dist'),
+    umdNamedDefine: true
   }
 }

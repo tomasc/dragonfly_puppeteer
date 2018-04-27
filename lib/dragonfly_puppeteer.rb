@@ -1,5 +1,8 @@
 require "dragonfly"
+
+require "dragonfly_puppeteer/generators/pdf"
 require "dragonfly_puppeteer/generators/screenshot"
+
 require "dragonfly_puppeteer/plugin"
 require "dragonfly_puppeteer/version"
 
