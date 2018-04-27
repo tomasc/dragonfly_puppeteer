@@ -35,7 +35,9 @@ Dragonfly.app.configure do
 end
 ```
 
-When `CHROME_HEADLESS_HOST` and `CHROME_HEADLESS_PORT` are set, Puppeteer will connect to the running instance.
+The gem bundles all `node_modules` required for the Puppeteer scripts to run and connect to remote Chrome. For that to work, the `CHROME_HEADLESS_HOST` and `CHROME_HEADLESS_PORT` env variables need to be set.
+
+If you wish to use the Chromium bundled with Puppeteer, run `yarn --check-files` first (so that the bundled Chromium is installed).
 
 ### PDF generator
 

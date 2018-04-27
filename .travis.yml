@@ -3,10 +3,7 @@ sudo: false
 language: ruby
 rvm:
   - 2.3.3
-env:
-  - CHROME_HEADLESS_HOST=localhost CHROME_HEADLESS_PORT=9222
 addons:
   chrome: stable
 before_install:
   - gem install bundler -v 1.16.0
-  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
