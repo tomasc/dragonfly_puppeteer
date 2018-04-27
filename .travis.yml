@@ -4,8 +4,7 @@ language: ruby
 rvm:
   - 2.3.3
 env:
-  - CHROME_HEADLESS_HOST=localhost
-  - CHROME_HEADLESS_PORT=9222
+  - CHROME_HEADLESS_HOST=localhost CHROME_HEADLESS_PORT=9222
 addons:
   chrome: stable
 before_install:
