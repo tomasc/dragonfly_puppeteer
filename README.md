@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/tomasc/dragonfly_puppeteer.svg)](https://travis-ci.org/tomasc/dragonfly_puppeteer) [![Gem Version](https://badge.fury.io/rb/dragonfly_puppeteer.svg)](http://badge.fury.io/rb/dragonfly_puppeteer) [![Coverage Status](https://img.shields.io/coveralls/tomasc/dragonfly_puppeteer.svg)](https://coveralls.io/r/tomasc/dragonfly_puppeteer)
 
+[Dragonfly](https://github.com/markevans/dragonfly) gem that uses [Puppeteer](https://github.com/GoogleChrome/puppeteer) to control headless Chrome in order to render PDF or screenshots.
+
 ## Requirements
 
 * node
@@ -33,13 +35,7 @@ Dragonfly.app.configure do
 end
 ```
 
-Optionally include host & port in case you are connecting to running Chrome (recommended).
-
-```ruby
-Dragonfly.app.configure do
-  plugin :puppeteer, host: 'chrome_headless', port: '9222'
-end
-```
+When `CHROME_HEADLESS_HOST` and `CHROME_HEADLESS_PORT` are set, Puppeteer will connect to the running instance.
 
 ### PDF generator
 

@@ -1,4 +1,8 @@
 import puppeteer from 'puppeteer'
+import request from 'request-promise-native'
+
+CHROME_HEADLESS_HOST = process.env.CHROME_HEADLESS_HOST
+CHROME_HEADLESS_PORT = process.env.CHROME_HEADLESS_PORT
 
 args = process.argv.slice(2)
 
@@ -17,8 +21,21 @@ sleep = (ms) ->
   new Promise (resolve) -> setTimeout(resolve, ms)
 
 pdf = ->
-  browser = await puppeteer.launch
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  if CHROME_HEADLESS_HOST && CHROME_HEADLESS_PORT
+    res = await request(
+      json: true,
+      resolveWithFullResponse: true
+      uri: "http://#{CHROME_HEADLESS_HOST}:#{CHROME_HEADLESS_PORT}/json/version"
+    )
+
+    webSocket = res.body.webSocketDebuggerUrl
+
+    browser = await puppeteer.connect
+      browserWSEndpoint: webSocket
+
+  else
+    browser = await puppeteer.launch
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
 
   page = await browser.newPage()
   await page.setExtraHTTPHeaders(httpHeaders)
@@ -31,6 +48,10 @@ pdf = ->
 
   await sleep(delay)
   await page.pdf(pdfOptions)
-  await browser.close()
+
+  if CHROME_HEADLESS_HOST && CHROME_HEADLESS_PORT
+    await browser.disconnect()
+  else
+    await browser.close()
 
 pdf()

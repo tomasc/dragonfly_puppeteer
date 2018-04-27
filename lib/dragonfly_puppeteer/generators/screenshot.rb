@@ -19,8 +19,6 @@ module DragonflyPuppeteer
         delay = extract_delay(opts)
 
         node_command = content.env.fetch(:node_command, 'node')
-        # options[:host] ||= content.env[:host]
-        # options[:port] ||= content.env[:port]
 
         content.shell_generate(ext: format) do |path|
           screenshot_opts[:path] = path
