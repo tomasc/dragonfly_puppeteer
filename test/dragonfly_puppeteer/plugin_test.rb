@@ -1,14 +1,21 @@
 require 'test_helper'
 
-module DragonflyPuppeteer
-  describe Plugin do
-    let(:app) { test_app.configure_with(:puppeteer) }
-    # let(:html) { app.fetch_file(SAMPLES_DIR.join('sample.html')) }
+describe DragonflyPuppeteer::Plugin do
+  let(:app) { test_app.configure_with(:puppeteer) }
 
-    # describe 'processors' do
-    #   it 'adds #rasterize' do
-    #     html.must_respond_to :rasterize
-    #   end
-    # end
+  describe 'generators' do
+    describe ':pdf' do
+      let(:result) { app.generate(:pdf, '<html></html>') }
+      it { get_mime_type(result.path).must_include "application/pdf" }
+    end
+
+    describe ':screenshot' do
+      let(:result) { app.generate(:screenshot, '<html></html>') }
+      it { get_mime_type(result.path).must_include "image/png" }
+    end
+  end
+
+  def get_mime_type(file_path)
+    `file --mime-type #{file_path}`.gsub(/\n/, "")
   end
 end
