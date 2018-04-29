@@ -6,6 +6,7 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   let(:content) { Dragonfly::Content.new(app) }
   let(:div_width) { 1200 }
   let(:div_height) { 1200 }
+  let(:url_attributes) { Dragonfly::UrlAttributes.new }
   let(:source) { %Q{
     <html>
       <head>
@@ -21,21 +22,26 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   } }
   let(:opts) { {} }
 
-  before { generator.call(content, source, opts) }
+  before do
+    generator.call(content, source, opts)
+    generator.update_url(url_attributes, source, opts)
+  end
 
   describe 'formats' do
     describe 'png' do
       let(:opts) { { 'format' => 'png' } }
 
       it { get_mime_type(content.path).must_include "image/png" }
-      it { content.meta.must_equal("format" => "png") }
+      it { content.meta.must_equal("format" => "png", "name" => "file.png") }
+      it { url_attributes.name.must_equal "file.png" }
     end
 
     describe 'jpg' do
       let(:opts) { { 'format' => 'jpg' } }
 
       it { get_mime_type(content.path).must_include "image/jpeg" }
-      it { content.meta.must_equal("format" => "jpg") }
+      it { content.meta.must_equal("format" => "jpg", "name" => "file.jpg") }
+      it { url_attributes.name.must_equal "file.jpg" }
     end
   end
 
@@ -78,6 +84,16 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     let(:source) { 'https://www.google.com' }
 
     it { get_mime_type(content.path).must_include "image/png" }
+    it { content.meta.must_equal("format" => "png", "name" => "file.png") }
+    it { url_attributes.name.must_equal "file.png" }
+  end
+
+  describe 'when :file_name provided' do
+    let(:file_name) { "my_file_name" }
+    let(:opts) { { 'file_name' => file_name } }
+
+    it { content.meta.must_equal("format" => "png", "name" => "#{file_name}.png") }
+    it { url_attributes.name.must_equal "#{file_name}.png" }
   end
 
   # ---------------------------------------------------------------------

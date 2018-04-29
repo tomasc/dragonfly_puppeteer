@@ -60,6 +60,9 @@ Dragonfly.app.generate(
   # default value, additional delay before saving PDF
   "delay" => 0,
 
+  # default value, name for the generated PDF
+  "file_name" => "file",
+
   # default value
   "pdf_opts" => {},
 
@@ -105,6 +108,9 @@ Dragonfly.app.generate(
 
   # default value, additional delay before taking screenshot
   "delay" => 0,
+
+  # default value, name for the generated PDF
+  "file_name" => "file",
 
   # default values
   "viewport_opts" => {
