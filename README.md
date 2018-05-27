@@ -39,6 +39,14 @@ The gem bundles all `node_modules` required for the Puppeteer scripts to run and
 
 If you wish to use the Chromium bundled with Puppeteer, run `yarn --check-files` first (so that the bundled Chromium is installed).
 
+## Supported Formats
+
+List of supported formats is available as:
+
+```ruby
+DragonflyPuppeteer::SUPPORTED_OUTPUT_FORMATS # => ["jpg", "png", "pdf", …]
+```
+
 ### PDF generator
 
 ```ruby

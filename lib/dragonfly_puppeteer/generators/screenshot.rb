@@ -3,79 +3,93 @@ require 'json'
 module DragonflyPuppeteer
   module Generators
     class Screenshot
-
-      class UnsupportedFormat < RuntimeError; end
-
       def call(content, source, opts = {})
+        opts = stringify_keys(opts)
+
         format = extract_format(opts)
-        raise UnsupportedFormat unless %w[jpg png].include?(format.to_s)
 
-        viewport_opts = extract_viewport_opts(opts)
-        screenshot_opts = extract_screenshot_opts(opts)
-        screenshot_opts[:type] = (format == 'jpg' ? 'jpeg' : format)
-        goto_opts = extract_goto_opts(opts)
-        http_headers = extract_http_headers(opts)
+        raise UnsupportedOutputFormat unless SUPPORTED_OUTPUT_FORMATS_SCREENSHOT.include?(format)
+
+        viewport_opts = stringify_keys(extract_viewport_opts(opts))
+        screenshot_opts = stringify_keys(extract_screenshot_opts(opts))
+        screenshot_opts['type'] = (format == 'jpg' ? 'jpeg' : format)
+        goto_opts = stringify_keys(extract_goto_opts(opts))
+        http_headers = stringify_keys(extract_http_headers(opts))
+
         delay = extract_delay(opts)
-
         file_name = extract_file_name(opts)
 
-        node_command = content.env.fetch(:node_command, 'node')
+        node_command = content.env.fetch('node_command', 'node')
 
         content.shell_generate(ext: format) do |path|
-          screenshot_opts[:path] = path
+          screenshot_opts['path'] = path
           "#{node_command} #{script} #{Shellwords.escape(source)} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' '#{http_headers.to_json}' #{delay}"
         end
+
+        content.ext = format
         content.add_meta('format' => format, 'name' => "#{file_name}.#{format}")
       end
 
       def update_url(url_attributes, source, opts = {})
+        opts = stringify_keys(opts)
+        format = extract_format(opts)
         file_name = extract_file_name(opts)
-        url_attributes.name = "#{file_name}.#{extract_format(opts)}"
+        url_attributes.name = "#{file_name}.#{format}"
       end
 
       private
 
       def extract_file_name(opts)
-        opts['file_name'] || 'file'
+        opts.fetch('file_name', 'file')
       end
 
       def extract_format(opts)
-        opts['format'] || 'png'
+        opts.fetch('format', 'png').to_s
       end
 
       def extract_viewport_opts(opts)
-        opts['viewport_opts'] || {
-          width: 1280,
-          height: 800,
-          isMobile: false,
-          deviceScaleFactor: 1
-        }
+        opts.fetch('viewport_opts') do
+          {
+            width: 1280,
+            height: 800,
+            isMobile: false,
+            deviceScaleFactor: 1
+          }
+        end
       end
 
       def extract_screenshot_opts(opts)
-        opts['screenshot_opts'] || {
-          fullPage: false,
-          omitBackground: false,
-          # quality: 100
-        }
+        opts.fetch('screenshot_opts') do
+          {
+            fullPage: false,
+            omitBackground: false,
+            # quality: 100
+          }
+        end
       end
 
       def extract_goto_opts(opts)
-        opts['goto_opts'] || {
-          waitUntil: 'networkidle2'
-        }
+        opts.fetch('goto_opts') do
+          {
+            waitUntil: 'networkidle2'
+          }
+        end
       end
 
       def extract_http_headers(opts)
-        opts['http_headers'] || {}
+        opts.fetch('http_headers', {})
       end
 
       def extract_delay(opts)
-        opts['delay'] || 0
+        opts.fetch('delay', 0)
       end
 
       def script
         File.join(DragonflyPuppeteer.root, 'script/dist/screenshot.js')
+      end
+
+      def stringify_keys(hash)
+        hash.each_with_object({}) { |(k, v), memo| memo[k.to_s] = v }
       end
     end
   end

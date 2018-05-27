@@ -7,19 +7,21 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   let(:div_width) { 1200 }
   let(:div_height) { 1200 }
   let(:url_attributes) { Dragonfly::UrlAttributes.new }
-  let(:source) { %Q{
-    <html>
-      <head>
-        <style type="text/css">
-          body { margin: 0; }
-          .test { width: #{div_width}px; height: #{div_height}px; }
-        </style>
-      </head>
-      <body>
-        <div class="test">TEST</div>
-      </body>
-    </html>
-  } }
+  let(:source) do
+    %(
+      <html>
+        <head>
+          <style type="text/css">
+            body { margin: 0; }
+            .test { width: #{div_width}px; height: #{div_height}px; }
+          </style>
+        </head>
+        <body>
+          <div class="test">TEST</div>
+        </body>
+      </html>
+    )
+  end
   let(:opts) { {} }
 
   before do
@@ -31,17 +33,17 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     describe 'png' do
       let(:opts) { { 'format' => 'png' } }
 
-      it { get_mime_type(content.path).must_include "image/png" }
-      it { content.meta.must_equal("format" => "png", "name" => "file.png") }
-      it { url_attributes.name.must_equal "file.png" }
+      it { get_mime_type(content.path).must_include 'image/png' }
+      it { content.meta.must_equal('format' => 'png', 'name' => 'file.png') }
+      it { url_attributes.name.must_equal 'file.png' }
     end
 
     describe 'jpg' do
       let(:opts) { { 'format' => 'jpg' } }
 
-      it { get_mime_type(content.path).must_include "image/jpeg" }
-      it { content.meta.must_equal("format" => "jpg", "name" => "file.jpg") }
-      it { url_attributes.name.must_equal "file.jpg" }
+      it { get_mime_type(content.path).must_include 'image/jpeg' }
+      it { content.meta.must_equal('format' => 'jpg', 'name' => 'file.jpg') }
+      it { url_attributes.name.must_equal 'file.jpg' }
     end
   end
 
@@ -83,23 +85,23 @@ describe DragonflyPuppeteer::Generators::Screenshot do
   describe 'URL source' do
     let(:source) { 'https://www.google.com' }
 
-    it { get_mime_type(content.path).must_include "image/png" }
-    it { content.meta.must_equal("format" => "png", "name" => "file.png") }
-    it { url_attributes.name.must_equal "file.png" }
+    it { get_mime_type(content.path).must_include 'image/png' }
+    it { content.meta.must_equal('format' => 'png', 'name' => 'file.png') }
+    it { url_attributes.name.must_equal 'file.png' }
   end
 
   describe 'when :file_name provided' do
-    let(:file_name) { "my_file_name" }
+    let(:file_name) { 'my_file_name' }
     let(:opts) { { 'file_name' => file_name } }
 
-    it { content.meta.must_equal("format" => "png", "name" => "#{file_name}.png") }
+    it { content.meta.must_equal('format' => 'png', 'name' => "#{file_name}.png") }
     it { url_attributes.name.must_equal "#{file_name}.png" }
   end
 
   # ---------------------------------------------------------------------
 
   def get_mime_type(file_path)
-    `file --mime-type #{file_path}`.gsub(/\n/, "")
+    `file --mime-type #{file_path}`.delete("\n")
   end
 
   def image_properties(image)
@@ -110,13 +112,13 @@ describe DragonflyPuppeteer::Generators::Screenshot do
     filename, format, geometry, geometry_2, depth, image_class, size = details.split(' ')
     width, height = geometry.split('x')
     {
-      :filename => filename,
-      :format => format.downcase,
-      :width => width.to_i,
-      :height => height.to_i,
-      :depth => depth,
-      :image_class => image_class,
-      :size => size.to_i
+      filename: filename,
+      format: format.downcase,
+      width: width.to_i,
+      height: height.to_i,
+      depth: depth,
+      image_class: image_class,
+      size: size.to_i
     }
   end
 end

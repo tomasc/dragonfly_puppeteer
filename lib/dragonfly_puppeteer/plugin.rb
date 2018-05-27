@@ -1,10 +1,10 @@
 module DragonflyPuppeteer
   class Plugin
-    def call(app, options={})
-      app.env[:node_command] = options[:node_command] || 'node'
+    def call(app, options = {})
+      app.env['node_command'] = options['node_command'] || 'node'
 
-      app.add_generator :pdf, DragonflyPuppeteer::Generators::Pdf.new
-      app.add_generator :screenshot, DragonflyPuppeteer::Generators::Screenshot.new
+      app.add_generator :pdf, Generators::Pdf.new
+      app.add_generator :screenshot, Generators::Screenshot.new
     end
   end
 end
