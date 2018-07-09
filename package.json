@@ -2,7 +2,8 @@
   "dependencies": {
     "puppeteer": "^1.5.0",
     "request": "^2.85.0",
-    "request-promise-native": "^1.0.5"
+    "request-promise-native": "^1.0.5",
+    "websocket": "^1.0.26"
   },
   "devDependencies": {
     "babel-loader": "^7.1.4",
