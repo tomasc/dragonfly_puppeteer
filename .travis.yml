@@ -3,6 +3,8 @@ sudo: false
 language: ruby
 rvm:
   - 2.3.3
+node_js:
+  - 10.6.0
 env:
   - CHROME_HEADLESS_HOST=localhost CHROME_HEADLESS_PORT=9222
 services:
