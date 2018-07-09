@@ -23,6 +23,7 @@ describe DragonflyPuppeteer::Generators::Pdf do
   describe 'formats' do
     describe 'PDF' do
       it { get_mime_type(content.path).must_include 'application/pdf' }
+      it { content.size.must_be :>, 8_000 }
       it { content.meta.must_equal('format' => 'pdf', 'name' => 'file.pdf') }
       it { url_attributes.name.must_equal 'file.pdf' }
     end

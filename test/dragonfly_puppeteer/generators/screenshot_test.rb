@@ -34,6 +34,7 @@ describe DragonflyPuppeteer::Generators::Screenshot do
       let(:opts) { { 'format' => 'png' } }
 
       it { get_mime_type(content.path).must_include 'image/png' }
+      it { content.size.must_be :>, 6_000 }
       it { content.meta.must_equal('format' => 'png', 'name' => 'file.png') }
       it { url_attributes.name.must_equal 'file.png' }
     end
@@ -42,6 +43,7 @@ describe DragonflyPuppeteer::Generators::Screenshot do
       let(:opts) { { 'format' => 'jpg' } }
 
       it { get_mime_type(content.path).must_include 'image/jpeg' }
+      it { content.size.must_be :>, 6_000 }
       it { content.meta.must_equal('format' => 'jpg', 'name' => 'file.jpg') }
       it { url_attributes.name.must_equal 'file.jpg' }
     end
