@@ -31,6 +31,7 @@ module.exports = function (fork) {
 
   def("TSTypeReference")
     .bases("TSType")
+    .build("typeName", "typeParameters")
     .field("typeName", IdOrQualifiedName)
     .field("typeParameters",
            or(def("TSTypeParameterInstantiation"), null),
@@ -121,7 +122,7 @@ module.exports = function (fork) {
   def("TSInferType")
     .bases("TSType")
     .build("typeParameter")
-    .field("typeParameter", def("TSType"));
+    .field("typeParameter", def("TSTypeParameter"));
 
   def("TSParenthesizedType")
     .bases("TSType")
