@@ -9,7 +9,6 @@ services:
   - docker
 before_install:
   - nvm install
-  - echo $(node -v)
   - gem install bundler -v 1.16.0
   - docker pull alpeware/chrome-headless-trunk
   - docker run -d --rm -p=9222:9222 alpeware/chrome-headless-trunk
