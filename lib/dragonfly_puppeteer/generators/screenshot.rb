@@ -10,11 +10,11 @@ module DragonflyPuppeteer
 
         raise UnsupportedOutputFormat unless SUPPORTED_OUTPUT_FORMATS_SCREENSHOT.include?(format)
 
-        viewport_opts = stringify_keys(extract_viewport_opts(opts))
-        screenshot_opts = stringify_keys(extract_screenshot_opts(opts))
+        viewport_opts = stringify_keys(extract_viewport_opts(opts)).reject{ |k, v| v.nil? || v == "" }
+        screenshot_opts = stringify_keys(extract_screenshot_opts(opts)).reject{ |k, v| v.nil? || v == "" }
         screenshot_opts['type'] = (format == 'jpg' ? 'jpeg' : format)
-        goto_opts = stringify_keys(extract_goto_opts(opts))
-        http_headers = stringify_keys(extract_http_headers(opts))
+        goto_opts = stringify_keys(extract_goto_opts(opts)).reject{ |k, v| v.nil? || v == "" }
+        http_headers = stringify_keys(extract_http_headers(opts)).reject{ |k, v| v.nil? || v == "" }
 
         delay = extract_delay(opts)
         file_name = extract_file_name(opts)

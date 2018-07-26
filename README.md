@@ -117,7 +117,7 @@ Dragonfly.app.generate(
   # default value, additional delay before taking screenshot
   "delay" => 0,
 
-  # default value, name for the generated PDF
+  # default value, name for the generated screenshot
   "file_name" => "file",
 
   # default values

@@ -13,6 +13,10 @@ gotoOptions = JSON.parse(args[3])
 httpHeaders = JSON.parse(args[4])
 delay = args[5]
 
+viewportOptions.width = parseInt(viewportOptions.width) if viewportOptions.width
+viewportOptions.height = parseInt(viewportOptions.height) if viewportOptions.height
+viewportOptions.deviceScaleFactor = parseFloat(viewportOptions.deviceScaleFactor) if viewportOptions.deviceScaleFactor
+
 sleep = (ms) ->
   ms = (ms) ? ms : 0;
   new Promise (resolve) -> setTimeout(resolve, ms)
