@@ -78,6 +78,7 @@ class Page extends EventEmitter {
     this._keyboard = new Keyboard(client);
     this._mouse = new Mouse(client, this._keyboard);
     this._touchscreen = new Touchscreen(client, this._keyboard);
+    /** @type {!FrameManager} */
     this._frameManager = new FrameManager(client, frameTree, this);
     this._networkManager = new NetworkManager(client, this._frameManager);
     this._emulationManager = new EmulationManager(client);
@@ -101,7 +102,7 @@ class Page extends EventEmitter {
         return;
       }
       const session = client._createSession(event.targetInfo.type, event.sessionId);
-      const worker = new Worker(session, event.targetInfo.url, this._addConsoleMessage.bind(this));
+      const worker = new Worker(session, event.targetInfo.url, this._addConsoleMessage.bind(this), this._handleException.bind(this));
       this._workers.set(event.sessionId, worker);
       this.emit(Page.Events.WorkerCreated, worker);
 
@@ -126,6 +127,7 @@ class Page extends EventEmitter {
     client.on('Page.domContentEventFired', event => this.emit(Page.Events.DOMContentLoaded));
     client.on('Page.loadEventFired', event => this.emit(Page.Events.Load));
     client.on('Runtime.consoleAPICalled', event => this._onConsoleAPI(event));
+    client.on('Runtime.bindingCalled', event => this._onBindingCalled(event));
     client.on('Page.javascriptDialogOpening', event => this._onDialog(event));
     client.on('Runtime.exceptionThrown', exception => this._handleException(exception.exceptionDetails));
     client.on('Security.certificateError', event => this._onCertificateError(event));
@@ -386,10 +388,12 @@ class Page extends EventEmitter {
     this._pageBindings[name] = puppeteerFunction;
 
     const expression = helper.evaluationString(addPageBinding, name);
+    await this._client.send('Runtime.addBinding', {name: name});
     await this._client.send('Page.addScriptToEvaluateOnNewDocument', {source: expression});
     await Promise.all(this.frames().map(frame => frame.evaluate(expression).catch(debugError)));
 
     function addPageBinding(bindingName) {
+      const binding = window[bindingName];
       window[bindingName] = async(...args) => {
         const me = window[bindingName];
         let callbacks = me['callbacks'];
@@ -400,8 +404,7 @@ class Page extends EventEmitter {
         const seq = (me['lastSeq'] || 0) + 1;
         me['lastSeq'] = seq;
         const promise = new Promise(fulfill => callbacks.set(seq, fulfill));
-        // eslint-disable-next-line no-console
-        console.debug('driver:page-binding', JSON.stringify({name: bindingName, seq, args}));
+        binding(JSON.stringify({name: bindingName, seq, args}));
         return promise;
       };
     }
@@ -473,20 +476,23 @@ class Page extends EventEmitter {
    * @param {!Protocol.Runtime.consoleAPICalledPayload} event
    */
   async _onConsoleAPI(event) {
-    if (event.type === 'debug' && event.args.length && event.args[0].value === 'driver:page-binding') {
-      const {name, seq, args} = JSON.parse(event.args[1].value);
-      const result = await this._pageBindings[name](...args);
-      const expression = helper.evaluationString(deliverResult, name, seq, result);
-      this._client.send('Runtime.evaluate', { expression, contextId: event.executionContextId }).catch(debugError);
-
-      function deliverResult(name, seq, result) {
-        window[name]['callbacks'].get(seq)(result);
-        window[name]['callbacks'].delete(seq);
-      }
-      return;
-    }
     const values = event.args.map(arg => this._frameManager.createJSHandle(event.executionContextId, arg));
     this._addConsoleMessage(event.type, values);
+  }
+
+  /**
+   * @param {!Protocol.Runtime.bindingCalledPayload} event
+   */
+  async _onBindingCalled(event) {
+    const {name, seq, args} = JSON.parse(event.payload);
+    const result = await this._pageBindings[name](...args);
+    const expression = helper.evaluationString(deliverResult, name, seq, result);
+    this._client.send('Runtime.evaluate', { expression, contextId: event.executionContextId }).catch(debugError);
+
+    function deliverResult(name, seq, result) {
+      window[name]['callbacks'].get(seq)(result);
+      window[name]['callbacks'].delete(seq);
+    }
   }
 
   /**
@@ -610,7 +616,7 @@ class Page extends EventEmitter {
 
   /**
    * @param {!Object=} options
-   * @return {!Promise<!Puppeteer.Response>}
+   * @return {!Promise<?Puppeteer.Response>}
    */
   async waitForNavigation(options = {}) {
     const mainFrame = this._frameManager.mainFrame();
@@ -624,6 +630,38 @@ class Page extends EventEmitter {
     if (error)
       throw error;
     return responses.get(this.mainFrame().url()) || null;
+  }
+
+  /**
+   * @param {(string|Function)} urlOrPredicate
+   * @param {!Object=} options
+   * @return {!Promise<!Puppeteer.Request>}
+   */
+  async waitForRequest(urlOrPredicate, options = {}) {
+    const timeout = typeof options.timeout === 'number' ? options.timeout : 30000;
+    return helper.waitForEvent(this._networkManager, NetworkManager.Events.Request, request => {
+      if (helper.isString(urlOrPredicate))
+        return (urlOrPredicate === request.url());
+      if (typeof urlOrPredicate === 'function')
+        return !!(urlOrPredicate(request));
+      return false;
+    }, timeout);
+  }
+
+  /**
+   * @param {(string|Function)} urlOrPredicate
+   * @param {!Object=} options
+   * @return {!Promise<!Puppeteer.Response>}
+   */
+  async waitForResponse(urlOrPredicate, options = {}) {
+    const timeout = typeof options.timeout === 'number' ? options.timeout : 30000;
+    return helper.waitForEvent(this._networkManager, NetworkManager.Events.Response, response => {
+      if (helper.isString(urlOrPredicate))
+        return (urlOrPredicate === response.url());
+      if (typeof urlOrPredicate === 'function')
+        return !!(urlOrPredicate(response));
+      return false;
+    }, timeout);
   }
 
   /**

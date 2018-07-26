@@ -36,11 +36,21 @@ screenshot = ->
 
   else
     browser = await puppeteer.launch
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--hide-scrollbars'
+      ]
 
   page = await browser.newPage()
   await page.setViewport(viewportOptions)
   await page.setExtraHTTPHeaders(httpHeaders)
+
+  # make sure all images lazyload immediately
+  page.evaluate ->
+    window.lazySizesConfig or= {}
+    window.lazySizesConfig.preloadAfterLoad = true
 
   if source.startsWith('http')
     await page.goto(source, gotoOptions)

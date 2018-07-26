@@ -76,7 +76,7 @@ Dragonfly.app.generate(
 
   # default values
   "goto_opts" => {
-    "waitUntil" => "networkidle2"
+    "waitUntil" => "networkidle0"
   },
 
   # default value
@@ -136,7 +136,7 @@ Dragonfly.app.generate(
 
   # default values
   "goto_opts" => {
-    "waitUntil" => "networkidle2"
+    "waitUntil" => "networkidle0"
   },
 
   # default value

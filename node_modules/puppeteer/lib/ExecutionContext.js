@@ -16,6 +16,9 @@
 
 const {helper, assert} = require('./helper');
 
+const EVALUATION_SCRIPT_URL = '__puppeteer_evaluation_script__';
+const SOURCE_URL_REGEX = /^[\040\t]*\/\/[@#] sourceURL=\s*(\S*?)\s*$/m;
+
 class ExecutionContext {
   /**
    * @param {!Puppeteer.CDPSession} client
@@ -61,29 +64,35 @@ class ExecutionContext {
    * @return {!Promise<!JSHandle>}
    */
   async evaluateHandle(pageFunction, ...args) {
+    const suffix = `//# sourceURL=${EVALUATION_SCRIPT_URL}`;
+
     if (helper.isString(pageFunction)) {
       const contextId = this._contextId;
       const expression = /** @type {string} */ (pageFunction);
-      const { exceptionDetails, result: remoteObject } = await this._client.send('Runtime.evaluate', {
-        expression,
+      const expressionWithSourceUrl = SOURCE_URL_REGEX.test(expression) ? expression : expression + '\n' + suffix;
+      const {exceptionDetails, result: remoteObject} = await this._client.send('Runtime.evaluate', {
+        expression: expressionWithSourceUrl,
         contextId,
         returnByValue: false,
         awaitPromise: true,
         userGesture: true
-      });
+      }).catch(rewriteError);
       if (exceptionDetails)
         throw new Error('Evaluation failed: ' + helper.getExceptionMessage(exceptionDetails));
       return this._objectHandleFactory(remoteObject);
     }
 
+    if (typeof pageFunction !== 'function')
+      throw new Error('The following is not a function: ' + pageFunction);
+
     const { exceptionDetails, result: remoteObject } = await this._client.send('Runtime.callFunctionOn', {
-      functionDeclaration: pageFunction.toString(),
+      functionDeclaration: pageFunction.toString() + '\n' + suffix + '\n',
       executionContextId: this._contextId,
       arguments: args.map(convertArgument.bind(this)),
       returnByValue: false,
       awaitPromise: true,
       userGesture: true
-    });
+    }).catch(rewriteError);
     if (exceptionDetails)
       throw new Error('Evaluation failed: ' + helper.getExceptionMessage(exceptionDetails));
     return this._objectHandleFactory(remoteObject);
@@ -115,6 +124,16 @@ class ExecutionContext {
         return { objectId: objectHandle._remoteObject.objectId };
       }
       return { value: arg };
+    }
+
+    /**
+     * @param {!Error} error
+     * @return {!Protocol.Runtime.evaluateReturnValue}
+     */
+    function rewriteError(error) {
+      if (error.message.endsWith('Cannot find context with specified id'))
+        throw new Error('Execution context was destroyed, most likely because of a navigation.');
+      throw error;
     }
   }
 
@@ -229,4 +248,4 @@ class JSHandle {
 }
 
 helper.tracePublicAPI(JSHandle);
-module.exports = {ExecutionContext, JSHandle};
+module.exports = {ExecutionContext, JSHandle, EVALUATION_SCRIPT_URL};

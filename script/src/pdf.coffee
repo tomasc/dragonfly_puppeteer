@@ -41,6 +41,11 @@ pdf = ->
   await page.setExtraHTTPHeaders(httpHeaders)
   await page.emulateMedia(mediaType)
 
+  # make sure all images lazyload immediately
+  page.evaluate ->
+    window.lazySizesConfig or= {}
+    window.lazySizesConfig.preloadAfterLoad = true
+
   if source.startsWith('http')
     await page.goto(source, gotoOptions)
   else

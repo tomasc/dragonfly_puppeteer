@@ -118,7 +118,7 @@ class FrameManager extends EventEmitter {
       return;
     assert(parentFrameId);
     const parentFrame = this._frames.get(parentFrameId);
-    const frame = new Frame(this._client, this._page, parentFrame, frameId);
+    const frame = new Frame(this._client, parentFrame, frameId);
     this._frames.set(frame._id, frame);
     this.emit(FrameManager.Events.FrameAttached, frame);
   }
@@ -145,7 +145,7 @@ class FrameManager extends EventEmitter {
         frame._id = framePayload.id;
       } else {
         // Initial main frame navigation.
-        frame = new Frame(this._client, this._page, null, framePayload.id);
+        frame = new Frame(this._client, null, framePayload.id);
       }
       this._frames.set(framePayload.id, frame);
       this._mainFrame = frame;
@@ -256,9 +256,8 @@ class Frame {
    * @param {?Frame} parentFrame
    * @param {string} frameId
    */
-  constructor(client, page, parentFrame, frameId) {
+  constructor(client, parentFrame, frameId) {
     this._client = client;
-    this._page = page;
     this._parentFrame = parentFrame;
     this._url = '';
     this._id = frameId;
@@ -837,8 +836,10 @@ class WaitTask {
     });
     // Since page navigation requires us to re-install the pageScript, we should track
     // timeout on our end.
-    if (timeout)
-      this._timeoutTimer = setTimeout(() => this.terminate(new Error(`waiting for ${title} failed: timeout ${timeout}ms exceeded`)), timeout);
+    if (timeout) {
+      const timeoutError = new Error(`waiting for ${title} failed: timeout ${timeout}ms exceeded`);
+      this._timeoutTimer = setTimeout(() => this.terminate(timeoutError), timeout);
+    }
     this.rerun();
   }
 
@@ -869,7 +870,9 @@ class WaitTask {
     }
 
     // Ignore timeouts in pageScript - we track timeouts ourselves.
-    if (!error && await this._frame.evaluate(s => !s, success)) {
+    // If the frame's execution context has already changed, `frame.evaluate` will
+    // throw an error - ignore this predicate run altogether.
+    if (!error && await this._frame.evaluate(s => !s, success).catch(e => true)) {
       await success.dispose();
       return;
     }

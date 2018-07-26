@@ -4395,8 +4395,8 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
 
 puppeteer@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-1.5.0.tgz#e35db3f3ba3d41013feb65be02bdaa727ec7b8ec"
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-1.6.1.tgz#ae50021bf8b2172be8f8d79224bec215f1a0c7c7"
   dependencies:
     debug "^3.1.0"
     extract-zip "^1.6.6"
@@ -5787,8 +5787,8 @@ write-file-atomic@^1.2.0:
     slide "^1.1.5"
 
 ws@^5.1.1:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-5.2.1.tgz#37827a0ba772d072a843c3615b0ad38bcdb354eb"
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-5.2.2.tgz#dffef14866b8e8dc9133582514d1befaf96e980f"
   dependencies:
     async-limiter "~1.0.0"
 

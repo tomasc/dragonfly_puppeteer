@@ -71,7 +71,7 @@ module DragonflyPuppeteer
       def extract_goto_opts(opts)
         opts.fetch('goto_opts') do
           {
-            waitUntil: 'networkidle2'
+            waitUntil: 'networkidle0'
           }
         end
       end
