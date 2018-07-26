@@ -83,7 +83,10 @@ Dragonfly.app.generate(
   "media_type" => "null",
 
   # default value
-  "http_headers" => {}
+  "http_headers" => {},
+
+  # default value
+  "user_agent" => nil
 )
 ```
 
@@ -140,7 +143,10 @@ Dragonfly.app.generate(
   },
 
   # default value
-  "http_headers" => {}
+  "http_headers" => {},
+
+  # default value
+  "user_agent" => nil
 )
 ```
 

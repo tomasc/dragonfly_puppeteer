@@ -15,6 +15,7 @@ module DragonflyPuppeteer
         screenshot_opts['type'] = (format == 'jpg' ? 'jpeg' : format)
         goto_opts = stringify_keys(extract_goto_opts(opts)).reject{ |k, v| v.nil? || v == "" }
         http_headers = stringify_keys(extract_http_headers(opts)).reject{ |k, v| v.nil? || v == "" }
+        user_agent = extract_user_agent(opts)
 
         delay = extract_delay(opts)
         file_name = extract_file_name(opts)
@@ -23,7 +24,7 @@ module DragonflyPuppeteer
 
         content.shell_generate(ext: format) do |path|
           screenshot_opts['path'] = path
-          "#{node_command} #{script} #{Shellwords.escape(source)} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' '#{http_headers.to_json}' #{delay}"
+          "#{node_command} #{script} #{Shellwords.escape(source)} '#{viewport_opts.to_json}' '#{screenshot_opts.to_json}' '#{goto_opts.to_json}' '#{http_headers.to_json}' '#{user_agent}' #{delay}"
         end
 
         content.ext = format
@@ -78,6 +79,10 @@ module DragonflyPuppeteer
 
       def extract_http_headers(opts)
         opts.fetch('http_headers', {})
+      end
+
+      def extract_user_agent(opts)
+        opts.fetch('user_agent', 'null')
       end
 
       def extract_delay(opts)

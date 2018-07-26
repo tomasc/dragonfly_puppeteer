@@ -13,6 +13,7 @@ module DragonflyPuppeteer
         pdf_opts = stringify_keys(extract_pdf_opts(opts))
         goto_opts = stringify_keys(extract_goto_opts(opts))
         http_headers = stringify_keys(extract_http_headers(opts))
+        user_agent = extract_user_agent(opts)
 
         media_type = extract_media_type(opts)
         delay = extract_delay(opts)
@@ -22,7 +23,7 @@ module DragonflyPuppeteer
 
         content.shell_generate(ext: format) do |path|
           pdf_opts['path'] = path
-          "#{node_command} #{script} #{Shellwords.escape(source)} '#{pdf_opts.to_json}' '#{goto_opts.to_json}' #{media_type} '#{http_headers.to_json}' #{delay}"
+          "#{node_command} #{script} #{Shellwords.escape(source)} '#{pdf_opts.to_json}' '#{goto_opts.to_json}' #{media_type} '#{http_headers.to_json}' '#{user_agent}' #{delay}"
         end
 
         content.ext = format
@@ -58,6 +59,10 @@ module DragonflyPuppeteer
 
       def extract_http_headers(opts)
         opts.fetch('http_headers', {})
+      end
+
+      def extract_user_agent(opts)
+        opts.fetch('user_agent', 'null')
       end
 
       def extract_delay(opts)

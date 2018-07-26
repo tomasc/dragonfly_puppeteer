@@ -11,7 +11,8 @@ viewportOptions = JSON.parse(args[1])
 screenshotOptions = JSON.parse(args[2])
 gotoOptions = JSON.parse(args[3])
 httpHeaders = JSON.parse(args[4])
-delay = args[5]
+userAgent = args[5]
+delay = args[6]
 
 viewportOptions.width = parseInt(viewportOptions.width) if viewportOptions.width
 viewportOptions.height = parseInt(viewportOptions.height) if viewportOptions.height
@@ -46,6 +47,7 @@ screenshot = ->
   page = await browser.newPage()
   await page.setViewport(viewportOptions)
   await page.setExtraHTTPHeaders(httpHeaders)
+  await page.setUserAgent(userAgent)
 
   # make sure all images lazyload immediately
   page.evaluate ->

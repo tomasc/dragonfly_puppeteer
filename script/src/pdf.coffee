@@ -11,7 +11,8 @@ pdfOptions = JSON.parse(args[1])
 gotoOptions = JSON.parse(args[2])
 mediaType = args[3]
 httpHeaders = JSON.parse(args[4])
-delay = args[5]
+userAgent = args[5]
+delay = args[6]
 
 unless mediaType in ['screen', 'print']
   mediaType = null
@@ -40,6 +41,7 @@ pdf = ->
   page = await browser.newPage()
   await page.setExtraHTTPHeaders(httpHeaders)
   await page.emulateMedia(mediaType)
+  await page.setUserAgent(userAgent)
 
   # make sure all images lazyload immediately
   page.evaluate ->
