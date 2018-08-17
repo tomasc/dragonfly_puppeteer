@@ -51,7 +51,9 @@ pdf = ->
   if source.startsWith('http')
     await page.goto(source, gotoOptions)
   else
-    await page.setContent(source)
+    # await page.setContent(source)
+    # @see https://github.com/GoogleChrome/puppeteer/issues/728#issuecomment-409247948
+    await page.goto("data:text/html,#{source}", gotoOptions)
 
   await sleep(delay)
   await page.pdf(pdfOptions)
