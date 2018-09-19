@@ -8,7 +8,7 @@ module DragonflyPuppeteer
 
         format = extract_format(opts)
 
-        raise UnsupportedOutputFormat unless SUPPORTED_OUTPUT_FORMATS_SCREENSHOT.include?(format)
+        raise UnsupportedOutputFormat unless SUPPORTED_OUTPUT_FORMATS_SCREENSHOT.include?(format.downcase)
 
         viewport_opts = stringify_keys(extract_viewport_opts(opts)).reject{ |k, v| v.nil? || v == "" }
         screenshot_opts = stringify_keys(extract_screenshot_opts(opts)).reject{ |k, v| v.nil? || v == "" }

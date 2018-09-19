@@ -8,7 +8,7 @@ module DragonflyPuppeteer
 
         format = 'pdf'
 
-        raise UnsupportedOutputFormat unless SUPPORTED_OUTPUT_FORMATS_PDF.include?(format)
+        raise UnsupportedOutputFormat unless SUPPORTED_OUTPUT_FORMATS_PDF.include?(format.downcase)
 
         pdf_opts = stringify_keys(extract_pdf_opts(opts))
         goto_opts = stringify_keys(extract_goto_opts(opts))
