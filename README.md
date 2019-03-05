@@ -53,7 +53,7 @@ With options:
 
 ```ruby
 Dragonfly.app.generate(
-  :screenshot,
+  :pdf,
 
   "https://www.google.com",
 
