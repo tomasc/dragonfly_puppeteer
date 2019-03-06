@@ -152,4 +152,4 @@ To install JS dependencies run `yarn`. To recompile JS scripts run `yarn run web
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/dragonfly_puppeteer.
+Bug reports and pull requests are welcome on GitHub at https://github.com/tomasc/dragonfly_puppeteer.
