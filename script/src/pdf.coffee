@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer'
 import request from 'request-promise-native'
+import url from 'url'
 
 CHROME_HEADLESS_HOST = process.env.CHROME_HEADLESS_HOST
 CHROME_HEADLESS_PORT = process.env.CHROME_HEADLESS_PORT
@@ -21,7 +22,18 @@ sleep = (ms) ->
   ms = (ms) ? ms : 0;
   new Promise (resolve) -> setTimeout(resolve, ms)
 
+lookupAsync = require('util').promisify(require('dns').lookup)
+
+changeUrlHostToUseIp = (urlString) ->
+  urlParsed = url.parse(urlString)
+  { address: hostIp } = await lookupAsync(urlParsed.hostname)
+  delete urlParsed.host
+  urlParsed.hostname = hostIp
+  url.format(urlParsed)
+
 pdf = ->
+  endPoint = await changeUrlHostToUseIp("http://#{CHROME_HEADLESS_HOST}:#{CHROME_HEADLESS_PORT}/json/version")
+
   if CHROME_HEADLESS_HOST && CHROME_HEADLESS_PORT
     res = await request(
       json: true,
