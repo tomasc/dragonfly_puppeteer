@@ -8,7 +8,7 @@ const Hook = require("./Hook");
 const HookCodeFactory = require("./HookCodeFactory");
 
 class SyncWaterfallHookCodeFactory extends HookCodeFactory {
-	content({ onError, onResult, onDone, rethrowIfPossible }) {
+	content({ onError, onResult, resultReturns, rethrowIfPossible }) {
 		return this.callTapsSeries({
 			onError: (i, err) => onError(err),
 			onResult: (i, result, next) => {
@@ -20,6 +20,7 @@ class SyncWaterfallHookCodeFactory extends HookCodeFactory {
 				return code;
 			},
 			onDone: () => onResult(this._args[0]),
+			doneReturns: resultReturns,
 			rethrowIfPossible
 		});
 	}
@@ -30,7 +31,8 @@ const factory = new SyncWaterfallHookCodeFactory();
 class SyncWaterfallHook extends Hook {
 	constructor(args) {
 		super(args);
-		if(args.length < 1) throw new Error("Waterfall hooks must have at least one argument");
+		if (args.length < 1)
+			throw new Error("Waterfall hooks must have at least one argument");
 	}
 
 	tapAsync() {

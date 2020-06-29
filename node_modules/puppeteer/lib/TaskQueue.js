@@ -4,7 +4,7 @@ class TaskQueue {
   }
 
   /**
-   * @param {function()} task
+   * @param {Function} task
    * @return {!Promise}
    */
   postTask(task) {
@@ -14,4 +14,4 @@ class TaskQueue {
   }
 }
 
-module.exports = TaskQueue;
+module.exports = {TaskQueue};

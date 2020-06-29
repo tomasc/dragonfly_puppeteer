@@ -43,9 +43,7 @@ class ImportParserPlugin {
 					const { comment } = e;
 					parser.state.module.warnings.push(
 						new CommentCompilationWarning(
-							`Compilation error while processing magic comment(-s): /*${
-								comment.value
-							}*/: ${e.message}`,
+							`Compilation error while processing magic comment(-s): /*${comment.value}*/: ${e.message}`,
 							parser.state.module,
 							comment.loc
 						)
@@ -54,32 +52,28 @@ class ImportParserPlugin {
 			}
 
 			if (importOptions) {
-				if (typeof importOptions.webpackIgnore !== "undefined") {
+				if (importOptions.webpackIgnore !== undefined) {
 					if (typeof importOptions.webpackIgnore !== "boolean") {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackIgnore\` expected a boolean, but received: ${
-									importOptions.webpackIgnore
-								}.`,
+								`\`webpackIgnore\` expected a boolean, but received: ${importOptions.webpackIgnore}.`,
 								expr.loc
 							)
 						);
 					} else {
-						// Do not instrument `import()` is `webpackIgnore` is `true`
+						// Do not instrument `import()` if `webpackIgnore` is `true`
 						if (importOptions.webpackIgnore) {
 							return false;
 						}
 					}
 				}
-				if (typeof importOptions.webpackChunkName !== "undefined") {
+				if (importOptions.webpackChunkName !== undefined) {
 					if (typeof importOptions.webpackChunkName !== "string") {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackChunkName\` expected a string, but received: ${
-									importOptions.webpackChunkName
-								}.`,
+								`\`webpackChunkName\` expected a string, but received: ${importOptions.webpackChunkName}.`,
 								expr.loc
 							)
 						);
@@ -87,14 +81,12 @@ class ImportParserPlugin {
 						chunkName = importOptions.webpackChunkName;
 					}
 				}
-				if (typeof importOptions.webpackMode !== "undefined") {
+				if (importOptions.webpackMode !== undefined) {
 					if (typeof importOptions.webpackMode !== "string") {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackMode\` expected a string, but received: ${
-									importOptions.webpackMode
-								}.`,
+								`\`webpackMode\` expected a string, but received: ${importOptions.webpackMode}.`,
 								expr.loc
 							)
 						);
@@ -102,7 +94,7 @@ class ImportParserPlugin {
 						mode = importOptions.webpackMode;
 					}
 				}
-				if (typeof importOptions.webpackPrefetch !== "undefined") {
+				if (importOptions.webpackPrefetch !== undefined) {
 					if (importOptions.webpackPrefetch === true) {
 						groupOptions.prefetchOrder = 0;
 					} else if (typeof importOptions.webpackPrefetch === "number") {
@@ -111,15 +103,13 @@ class ImportParserPlugin {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackPrefetch\` expected true or a number, but received: ${
-									importOptions.webpackPrefetch
-								}.`,
+								`\`webpackPrefetch\` expected true or a number, but received: ${importOptions.webpackPrefetch}.`,
 								expr.loc
 							)
 						);
 					}
 				}
-				if (typeof importOptions.webpackPreload !== "undefined") {
+				if (importOptions.webpackPreload !== undefined) {
 					if (importOptions.webpackPreload === true) {
 						groupOptions.preloadOrder = 0;
 					} else if (typeof importOptions.webpackPreload === "number") {
@@ -128,15 +118,13 @@ class ImportParserPlugin {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackPreload\` expected true or a number, but received: ${
-									importOptions.webpackPreload
-								}.`,
+								`\`webpackPreload\` expected true or a number, but received: ${importOptions.webpackPreload}.`,
 								expr.loc
 							)
 						);
 					}
 				}
-				if (typeof importOptions.webpackInclude !== "undefined") {
+				if (importOptions.webpackInclude !== undefined) {
 					if (
 						!importOptions.webpackInclude ||
 						importOptions.webpackInclude.constructor.name !== "RegExp"
@@ -144,9 +132,7 @@ class ImportParserPlugin {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackInclude\` expected a regular expression, but received: ${
-									importOptions.webpackInclude
-								}.`,
+								`\`webpackInclude\` expected a regular expression, but received: ${importOptions.webpackInclude}.`,
 								expr.loc
 							)
 						);
@@ -154,7 +140,7 @@ class ImportParserPlugin {
 						include = new RegExp(importOptions.webpackInclude);
 					}
 				}
-				if (typeof importOptions.webpackExclude !== "undefined") {
+				if (importOptions.webpackExclude !== undefined) {
 					if (
 						!importOptions.webpackExclude ||
 						importOptions.webpackExclude.constructor.name !== "RegExp"
@@ -162,9 +148,7 @@ class ImportParserPlugin {
 						parser.state.module.warnings.push(
 							new UnsupportedFeatureWarning(
 								parser.state.module,
-								`\`webpackExclude\` expected a regular expression, but received: ${
-									importOptions.webpackExclude
-								}.`,
+								`\`webpackExclude\` expected a regular expression, but received: ${importOptions.webpackExclude}.`,
 								expr.loc
 							)
 						);
@@ -248,7 +232,8 @@ class ImportParserPlugin {
 						namespaceObject: parser.state.module.buildMeta.strictHarmonyModule
 							? "strict"
 							: true
-					}
+					},
+					parser
 				);
 				if (!dep) return;
 				dep.loc = expr.loc;

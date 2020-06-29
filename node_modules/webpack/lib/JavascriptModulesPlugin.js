@@ -135,15 +135,21 @@ class JavascriptModulesPlugin {
 					const template = chunk.hasRuntime()
 						? compilation.mainTemplate
 						: compilation.chunkTemplate;
-					template.updateHashForChunk(hash, chunk);
+					hash.update(`${chunk.id} `);
+					hash.update(chunk.ids ? chunk.ids.join(",") : "");
+					template.updateHashForChunk(
+						hash,
+						chunk,
+						compilation.moduleTemplates.javascript,
+						compilation.dependencyTemplates
+					);
 					for (const m of chunk.modulesIterable) {
 						if (typeof m.source === "function") {
 							hash.update(m.hash);
 						}
 					}
-					chunk.contentHash.javascript = hash
-						.digest(hashDigest)
-						.substr(0, hashDigestLength);
+					const digest = /** @type {string} */ (hash.digest(hashDigest));
+					chunk.contentHash.javascript = digest.substr(0, hashDigestLength);
 				});
 			}
 		);

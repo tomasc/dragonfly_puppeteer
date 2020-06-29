@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const {helper, assert} = require('./helper');
+const {assert} = require('./helper');
 const keyDefinitions = require('./USKeyboardLayout');
 
 /**
@@ -38,7 +38,7 @@ class Keyboard {
 
   /**
    * @param {string} key
-   * @param {{text: string}=} options
+   * @param {{text?: string}=} options
    */
   async down(key, options = { text: undefined }) {
     const description = this._keyDescriptionForString(key);
@@ -148,13 +148,7 @@ class Keyboard {
    * @param {string} char
    */
   async sendCharacter(char) {
-    await this._client.send('Input.dispatchKeyEvent', {
-      type: 'char',
-      modifiers: this._modifiers,
-      text: char,
-      key: char,
-      unmodifiedText: char
-    });
+    await this._client.send('Input.insertText', {text: char});
   }
 
   /**
@@ -177,11 +171,12 @@ class Keyboard {
 
   /**
    * @param {string} key
-   * @param {!Object=} options
+   * @param {!{delay?: number, text?: string}=} options
    */
-  async press(key, options) {
+  async press(key, options = {}) {
+    const {delay = null} = options;
     await this.down(key, options);
-    if (options && options.delay)
+    if (delay !== null)
       await new Promise(f => setTimeout(f, options.delay));
     await this.up(key);
   }
@@ -197,20 +192,20 @@ class Mouse {
     this._keyboard = keyboard;
     this._x = 0;
     this._y = 0;
+    /** @type {'none'|'left'|'right'|'middle'} */
     this._button = 'none';
   }
 
   /**
    * @param {number} x
    * @param {number} y
-   * @param {Object=} options
-   * @return {!Promise}
+   * @param {!{steps?: number}=} options
    */
   async move(x, y, options = {}) {
+    const {steps = 1} = options;
     const fromX = this._x, fromY = this._y;
     this._x = x;
     this._y = y;
-    const steps = options.steps || 1;
     for (let i = 1; i <= steps; i++) {
       await this._client.send('Input.dispatchMouseEvent', {
         type: 'mouseMoved',
@@ -225,43 +220,55 @@ class Mouse {
   /**
    * @param {number} x
    * @param {number} y
-   * @param {!Object=} options
+   * @param {!{delay?: number, button?: "left"|"right"|"middle", clickCount?: number}=} options
    */
   async click(x, y, options = {}) {
-    this.move(x, y);
-    this.down(options);
-    if (typeof options.delay === 'number')
-      await new Promise(f => setTimeout(f, options.delay));
-    await this.up(options);
+    const {delay = null} = options;
+    if (delay !== null) {
+      await Promise.all([
+        this.move(x, y),
+        this.down(options),
+      ]);
+      await new Promise(f => setTimeout(f, delay));
+      await this.up(options);
+    } else {
+      await Promise.all([
+        this.move(x, y),
+        this.down(options),
+        this.up(options),
+      ]);
+    }
   }
 
   /**
-   * @param {!Object=} options
+   * @param {!{button?: "left"|"right"|"middle", clickCount?: number}=} options
    */
   async down(options = {}) {
-    this._button = (options.button || 'left');
+    const {button = 'left', clickCount = 1} = options;
+    this._button = button;
     await this._client.send('Input.dispatchMouseEvent', {
       type: 'mousePressed',
-      button: this._button,
+      button,
       x: this._x,
       y: this._y,
       modifiers: this._keyboard._modifiers,
-      clickCount: (options.clickCount || 1)
+      clickCount
     });
   }
 
   /**
-   * @param {!Object=} options
+   * @param {!{button?: "left"|"right"|"middle", clickCount?: number}=} options
    */
   async up(options = {}) {
+    const {button = 'left', clickCount = 1} = options;
     this._button = 'none';
     await this._client.send('Input.dispatchMouseEvent', {
       type: 'mouseReleased',
-      button: (options.button || 'left'),
+      button,
       x: this._x,
       y: this._y,
       modifiers: this._keyboard._modifiers,
-      clickCount: (options.clickCount || 1)
+      clickCount
     });
   }
 }
@@ -304,6 +311,3 @@ class Touchscreen {
 }
 
 module.exports = { Keyboard, Mouse, Touchscreen};
-helper.tracePublicAPI(Keyboard);
-helper.tracePublicAPI(Mouse);
-helper.tracePublicAPI(Touchscreen);

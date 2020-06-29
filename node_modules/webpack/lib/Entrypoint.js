@@ -6,7 +6,7 @@
 
 const ChunkGroup = require("./ChunkGroup");
 
-/** @typedef {import("./Chunk.js")} Chunk */
+/** @typedef {import("./Chunk")} Chunk */
 
 /**
  * Entrypoint serves as an encapsulation primitive for chunks that are
@@ -48,6 +48,16 @@ class Entrypoint extends ChunkGroup {
 	 */
 	getRuntimeChunk() {
 		return this.runtimeChunk || this.chunks[0];
+	}
+
+	/**
+	 * @param {Chunk} oldChunk chunk to be replaced
+	 * @param {Chunk} newChunk New chunk that will be replaced with
+	 * @returns {boolean} returns true if the replacement was successful
+	 */
+	replaceChunk(oldChunk, newChunk) {
+		if (this.runtimeChunk === oldChunk) this.runtimeChunk = newChunk;
+		return super.replaceChunk(oldChunk, newChunk);
 	}
 }
 

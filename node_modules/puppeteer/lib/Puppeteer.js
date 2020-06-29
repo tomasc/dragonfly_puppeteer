@@ -13,48 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const {helper} = require('./helper');
 const Launcher = require('./Launcher');
 const BrowserFetcher = require('./BrowserFetcher');
+const Errors = require('./Errors');
+const DeviceDescriptors = require('./DeviceDescriptors');
 
 module.exports = class {
   /**
-   * @param {!Object=} options
-   * @return {!Promise<!Puppeteer.Browser>}
+   * @param {string} projectRoot
+   * @param {string} preferredRevision
+   * @param {boolean} isPuppeteerCore
    */
-  static launch(options) {
-    return Launcher.launch(options);
+  constructor(projectRoot, preferredRevision, isPuppeteerCore) {
+    this._projectRoot = projectRoot;
+    this._launcher = new Launcher(projectRoot, preferredRevision, isPuppeteerCore);
   }
 
   /**
-   * @param {{browserWSEndpoint: string, ignoreHTTPSErrors: boolean}} options
+   * @param {!(Launcher.LaunchOptions & Launcher.ChromeArgOptions & Launcher.BrowserOptions)=} options
    * @return {!Promise<!Puppeteer.Browser>}
    */
-  static connect(options) {
-    return Launcher.connect(options);
+  launch(options) {
+    return this._launcher.launch(options);
+  }
+
+  /**
+   * @param {!(Launcher.BrowserOptions & {browserWSEndpoint?: string, browserURL?: string, transport?: !Puppeteer.ConnectionTransport})} options
+   * @return {!Promise<!Puppeteer.Browser>}
+   */
+  connect(options) {
+    return this._launcher.connect(options);
   }
 
   /**
    * @return {string}
    */
-  static executablePath() {
-    return Launcher.executablePath();
+  executablePath() {
+    return this._launcher.executablePath();
   }
 
   /**
+   * @return {Object}
+   */
+  get devices() {
+    return DeviceDescriptors;
+  }
+
+  /**
+   * @return {Object}
+   */
+  get errors() {
+    return Errors;
+  }
+
+  /**
+   * @param {!Launcher.ChromeArgOptions=} options
    * @return {!Array<string>}
    */
-  static defaultArgs() {
-    return Launcher.defaultArgs();
+  defaultArgs(options) {
+    return this._launcher.defaultArgs(options);
   }
 
   /**
-   * @param {!Object=} options
+   * @param {!BrowserFetcher.Options=} options
    * @return {!BrowserFetcher}
    */
-  static createBrowserFetcher(options) {
-    return new BrowserFetcher(options);
+  createBrowserFetcher(options) {
+    return new BrowserFetcher(this._projectRoot, options);
   }
 };
 
-helper.tracePublicAPI(module.exports, 'Puppeteer');

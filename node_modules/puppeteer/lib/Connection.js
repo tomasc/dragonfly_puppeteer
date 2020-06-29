@@ -13,38 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const {helper, assert} = require('./helper');
+const {assert} = require('./helper');
+const {Events} = require('./Events');
 const debugProtocol = require('debug')('puppeteer:protocol');
-const debugSession = require('debug')('puppeteer:session');
-
 const EventEmitter = require('events');
-const WebSocket = require('ws');
-const Pipe = require('./Pipe');
 
 class Connection extends EventEmitter {
-  /**
-   * @param {string} url
-   * @param {number=} delay
-   * @return {!Promise<!Connection>}
-   */
-  static async createForWebSocket(url, delay = 0) {
-    return new Promise((resolve, reject) => {
-      const ws = new WebSocket(url, { perMessageDeflate: false });
-      ws.on('open', () => resolve(new Connection(url, ws, delay)));
-      ws.on('error', reject);
-    });
-  }
-
-  /**
-   * @param {!NodeJS.WritableStream} pipeWrite
-   * @param {!NodeJS.ReadableStream} pipeRead
-   * @param {number=} delay
-   * @return {!Connection}
-   */
-  static createForPipe(pipeWrite, pipeRead, delay = 0) {
-    return new Connection('', new Pipe(pipeWrite, pipeRead), delay);
-  }
-
   /**
    * @param {string} url
    * @param {!Puppeteer.ConnectionTransport} transport
@@ -59,10 +33,27 @@ class Connection extends EventEmitter {
     this._delay = delay;
 
     this._transport = transport;
-    this._transport.on('message', this._onMessage.bind(this));
-    this._transport.on('close', this._onClose.bind(this));
+    this._transport.onmessage = this._onMessage.bind(this);
+    this._transport.onclose = this._onClose.bind(this);
     /** @type {!Map<string, !CDPSession>}*/
     this._sessions = new Map();
+    this._closed = false;
+  }
+
+  /**
+   * @param {!CDPSession} session
+   * @return {!Connection}
+   */
+  static fromSession(session) {
+    return session._connection;
+  }
+
+  /**
+   * @param {string} sessionId
+   * @return {?CDPSession}
+   */
+  session(sessionId) {
+    return this._sessions.get(sessionId) || null;
   }
 
   /**
@@ -78,20 +69,22 @@ class Connection extends EventEmitter {
    * @return {!Promise<?Object>}
    */
   send(method, params = {}) {
-    const id = ++this._lastId;
-    const message = JSON.stringify({id, method, params});
-    debugProtocol('SEND ► ' + message);
-    this._transport.send(message);
+    const id = this._rawSend({method, params});
     return new Promise((resolve, reject) => {
       this._callbacks.set(id, {resolve, reject, error: new Error(), method});
     });
   }
 
   /**
-   * @param {function()} callback
+   * @param {*} message
+   * @return {number}
    */
-  setClosedCallback(callback) {
-    this._closeCallback = callback;
+  _rawSend(message) {
+    const id = ++this._lastId;
+    message = JSON.stringify(Object.assign({}, message, {id}));
+    debugProtocol('SEND ► ' + message);
+    this._transport.send(message);
+    return id;
   }
 
   /**
@@ -102,7 +95,22 @@ class Connection extends EventEmitter {
       await new Promise(f => setTimeout(f, this._delay));
     debugProtocol('◀ RECV ' + message);
     const object = JSON.parse(message);
-    if (object.id) {
+    if (object.method === 'Target.attachedToTarget') {
+      const sessionId = object.params.sessionId;
+      const session = new CDPSession(this, object.params.targetInfo.type, sessionId);
+      this._sessions.set(sessionId, session);
+    } else if (object.method === 'Target.detachedFromTarget') {
+      const session = this._sessions.get(object.params.sessionId);
+      if (session) {
+        session._onClosed();
+        this._sessions.delete(object.params.sessionId);
+      }
+    }
+    if (object.sessionId) {
+      const session = this._sessions.get(object.sessionId);
+      if (session)
+        session._onMessage(object);
+    } else if (object.id) {
       const callback = this._callbacks.get(object.id);
       // Callbacks could be all rejected if someone has called `.dispose()`.
       if (callback) {
@@ -113,35 +121,23 @@ class Connection extends EventEmitter {
           callback.resolve(object.result);
       }
     } else {
-      if (object.method === 'Target.receivedMessageFromTarget') {
-        const session = this._sessions.get(object.params.sessionId);
-        if (session)
-          session._onMessage(object.params.message);
-      } else if (object.method === 'Target.detachedFromTarget') {
-        const session = this._sessions.get(object.params.sessionId);
-        if (session)
-          session._onClosed();
-        this._sessions.delete(object.params.sessionId);
-      } else {
-        this.emit(object.method, object.params);
-      }
+      this.emit(object.method, object.params);
     }
   }
 
   _onClose() {
-    if (this._closeCallback) {
-      this._closeCallback();
-      this._closeCallback = null;
-    }
-    this._transport.removeAllListeners();
-    // If transport throws any error at this point of time, we don't care and should swallow it.
-    this._transport.on('error', () => {});
+    if (this._closed)
+      return;
+    this._closed = true;
+    this._transport.onmessage = null;
+    this._transport.onclose = null;
     for (const callback of this._callbacks.values())
       callback.reject(rewriteError(callback.error, `Protocol error (${callback.method}): Target closed.`));
     this._callbacks.clear();
     for (const session of this._sessions.values())
       session._onClosed();
     this._sessions.clear();
+    this.emit(Events.Connection.Disconnected);
   }
 
   dispose() {
@@ -154,29 +150,24 @@ class Connection extends EventEmitter {
    * @return {!Promise<!CDPSession>}
    */
   async createSession(targetInfo) {
-    const {sessionId} = await this.send('Target.attachToTarget', {targetId: targetInfo.targetId});
-    const session = new CDPSession(this, targetInfo.type, sessionId);
-    this._sessions.set(sessionId, session);
-    return session;
+    const {sessionId} = await this.send('Target.attachToTarget', {targetId: targetInfo.targetId, flatten: true});
+    return this._sessions.get(sessionId);
   }
 }
 
 class CDPSession extends EventEmitter {
   /**
-   * @param {!Connection|!CDPSession} connection
+   * @param {!Connection} connection
    * @param {string} targetType
    * @param {string} sessionId
    */
   constructor(connection, targetType, sessionId) {
     super();
-    this._lastId = 0;
     /** @type {!Map<number, {resolve: function, reject: function, error: !Error, method: string}>}*/
     this._callbacks = new Map();
     this._connection = connection;
     this._targetType = targetType;
     this._sessionId = sessionId;
-    /** @type {!Map<string, !CDPSession>}*/
-    this._sessions = new Map();
   }
 
   /**
@@ -187,28 +178,16 @@ class CDPSession extends EventEmitter {
   send(method, params = {}) {
     if (!this._connection)
       return Promise.reject(new Error(`Protocol error (${method}): Session closed. Most likely the ${this._targetType} has been closed.`));
-    const id = ++this._lastId;
-    const message = JSON.stringify({id, method, params});
-    debugSession('SEND ► ' + message);
-    this._connection.send('Target.sendMessageToTarget', {sessionId: this._sessionId, message}).catch(e => {
-      // The response from target might have been already dispatched.
-      if (!this._callbacks.has(id))
-        return;
-      const callback = this._callbacks.get(id);
-      this._callbacks.delete(id);
-      callback.reject(rewriteError(callback.error, e && e.message));
-    });
+    const id = this._connection._rawSend({sessionId: this._sessionId, method, params});
     return new Promise((resolve, reject) => {
       this._callbacks.set(id, {resolve, reject, error: new Error(), method});
     });
   }
 
   /**
-   * @param {string} message
+   * @param {{id?: number, method: string, params: Object, error: {message: string, data: any}, result?: *}} object
    */
-  _onMessage(message) {
-    debugSession('◀ RECV ' + message);
-    const object = JSON.parse(message);
+  _onMessage(object) {
     if (object.id && this._callbacks.has(object.id)) {
       const callback = this._callbacks.get(object.id);
       this._callbacks.delete(object.id);
@@ -217,23 +196,14 @@ class CDPSession extends EventEmitter {
       else
         callback.resolve(object.result);
     } else {
-      if (object.method === 'Target.receivedMessageFromTarget') {
-        const session = this._sessions.get(object.params.sessionId);
-        if (session)
-          session._onMessage(object.params.message);
-      } else if (object.method === 'Target.detachedFromTarget') {
-        const session = this._sessions.get(object.params.sessionId);
-        if (session) {
-          session._onClosed();
-          this._sessions.delete(object.params.sessionId);
-        }
-      }
       assert(!object.id);
       this.emit(object.method, object.params);
     }
   }
 
   async detach() {
+    if (!this._connection)
+      throw new Error(`Session already detached. Most likely the ${this._targetType} has been closed.`);
     await this._connection.send('Target.detachFromTarget',  {sessionId: this._sessionId});
   }
 
@@ -242,19 +212,9 @@ class CDPSession extends EventEmitter {
       callback.reject(rewriteError(callback.error, `Protocol error (${callback.method}): Target closed.`));
     this._callbacks.clear();
     this._connection = null;
-  }
-
-  /**
-   * @param {string} targetType
-   * @param {string} sessionId
-   */
-  _createSession(targetType, sessionId) {
-    const session = new CDPSession(this, targetType, sessionId);
-    this._sessions.set(sessionId, session);
-    return session;
+    this.emit(Events.CDPSession.Disconnected);
   }
 }
-helper.tracePublicAPI(CDPSession);
 
 /**
  * @param {!Error} error
@@ -266,8 +226,7 @@ function createProtocolError(error, method, object) {
   let message = `Protocol error (${method}): ${object.error.message}`;
   if ('data' in object.error)
     message += ` ${object.error.data}`;
-  if (object.error.message)
-    return rewriteError(error, message);
+  return rewriteError(error, message);
 }
 
 /**

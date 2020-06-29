@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const {helper, assert} = require('./helper');
+const {assert} = require('./helper');
 
 class Dialog {
   /**
@@ -80,5 +80,4 @@ Dialog.Type = {
   Prompt: 'prompt'
 };
 
-module.exports = Dialog;
-helper.tracePublicAPI(Dialog);
+module.exports = {Dialog};

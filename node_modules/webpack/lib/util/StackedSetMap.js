@@ -96,12 +96,10 @@ class StackedSetMap {
 
 	asPairArray() {
 		this._compress();
-		return Array.from(
-			this.map.entries(),
-			pair =>
-				/** @type {[TODO, TODO]} */ (pair[1] === UNDEFINED_MARKER
-					? [pair[0], undefined]
-					: pair)
+		return Array.from(this.map.entries(), pair =>
+			/** @type {[TODO, TODO]} */ (pair[1] === UNDEFINED_MARKER
+				? [pair[0], undefined]
+				: pair)
 		);
 	}
 
@@ -128,8 +126,17 @@ class StackedSetMap {
 }
 
 // TODO remove in webpack 5
-StackedSetMap.prototype.push = util.deprecate(function(item) {
-	this.add(item);
-}, "This is no longer an Array: Use add instead.");
+StackedSetMap.prototype.push = util.deprecate(
+	/**
+	 * @deprecated
+	 * @this {StackedSetMap}
+	 * @param {any} item Item to add
+	 * @returns {void}
+	 */
+	function(item) {
+		this.add(item);
+	},
+	"This is no longer an Array: Use add instead."
+);
 
 module.exports = StackedSetMap;

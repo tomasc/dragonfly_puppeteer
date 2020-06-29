@@ -28,12 +28,41 @@ const ProxyAgent = require('https-proxy-agent');
 const getProxyForUrl = require('proxy-from-env').getProxyForUrl;
 
 const DEFAULT_DOWNLOAD_HOST = 'https://storage.googleapis.com';
+
+const supportedPlatforms = ['mac', 'linux', 'win32', 'win64'];
 const downloadURLs = {
-  linux: '%s/chromium-browser-snapshots/Linux_x64/%d/chrome-linux.zip',
-  mac: '%s/chromium-browser-snapshots/Mac/%d/chrome-mac.zip',
-  win32: '%s/chromium-browser-snapshots/Win/%d/chrome-win32.zip',
-  win64: '%s/chromium-browser-snapshots/Win_x64/%d/chrome-win32.zip',
+  linux: '%s/chromium-browser-snapshots/Linux_x64/%d/%s.zip',
+  mac: '%s/chromium-browser-snapshots/Mac/%d/%s.zip',
+  win32: '%s/chromium-browser-snapshots/Win/%d/%s.zip',
+  win64: '%s/chromium-browser-snapshots/Win_x64/%d/%s.zip',
 };
+
+/**
+ * @param {string} platform
+ * @param {string} revision
+ * @return {string}
+ */
+function archiveName(platform, revision) {
+  if (platform === 'linux')
+    return 'chrome-linux';
+  if (platform === 'mac')
+    return 'chrome-mac';
+  if (platform === 'win32' || platform === 'win64') {
+    // Windows archive name changed at r591479.
+    return parseInt(revision, 10) > 591479 ? 'chrome-win' : 'chrome-win32';
+  }
+  return null;
+}
+
+/**
+ * @param {string} platform
+ * @param {string} host
+ * @param {string} revision
+ * @return {string}
+ */
+function downloadURL(platform, host, revision) {
+  return util.format(downloadURLs[platform], host, revision, archiveName(platform, revision));
+}
 
 const readdirAsync = helper.promisify(fs.readdir.bind(fs));
 const mkdirAsync = helper.promisify(fs.mkdir.bind(fs));
@@ -49,10 +78,11 @@ function existsAsync(filePath) {
 
 class BrowserFetcher {
   /**
+   * @param {string} projectRoot
    * @param {!BrowserFetcher.Options=} options
    */
-  constructor(options = {}) {
-    this._downloadsFolder = options.path || path.join(helper.projectRoot(), '.local-chromium');
+  constructor(projectRoot, options = {}) {
+    this._downloadsFolder = options.path || path.join(projectRoot, '.local-chromium');
     this._downloadHost = options.host || DEFAULT_DOWNLOAD_HOST;
     this._platform = options.platform || '';
     if (!this._platform) {
@@ -65,7 +95,6 @@ class BrowserFetcher {
         this._platform = os.arch() === 'x64' ? 'win64' : 'win32';
       assert(this._platform, 'Unsupported platform: ' + os.platform());
     }
-    const supportedPlatforms = ['mac', 'linux', 'win32', 'win64'];
     assert(supportedPlatforms.includes(this._platform), 'Unsupported platform: ' + this._platform);
   }
 
@@ -81,8 +110,7 @@ class BrowserFetcher {
    * @return {!Promise<boolean>}
    */
   canDownload(revision) {
-    const url = util.format(downloadURLs[this._platform], this._downloadHost, revision);
-
+    const url = downloadURL(this._platform, this._downloadHost, revision);
     let resolve;
     const promise = new Promise(x => resolve = x);
     const request = httpRequest(url, 'HEAD', response => {
@@ -97,12 +125,11 @@ class BrowserFetcher {
 
   /**
    * @param {string} revision
-   * @param {?function(number, number)} progressCallback
+   * @param {?function(number, number):void} progressCallback
    * @return {!Promise<!BrowserFetcher.RevisionInfo>}
    */
   async download(revision, progressCallback) {
-    let url = downloadURLs[this._platform];
-    url = util.format(url, this._downloadHost, revision);
+    const url = downloadURL(this._platform, this._downloadHost, revision);
     const zipPath = path.join(this._downloadsFolder, `download-${this._platform}-${revision}.zip`);
     const folderPath = this._getFolderPath(revision);
     if (await existsAsync(folderPath))
@@ -134,7 +161,6 @@ class BrowserFetcher {
 
   /**
    * @param {string} revision
-   * @return {!Promise}
    */
   async remove(revision) {
     const folderPath = this._getFolderPath(revision);
@@ -150,15 +176,14 @@ class BrowserFetcher {
     const folderPath = this._getFolderPath(revision);
     let executablePath = '';
     if (this._platform === 'mac')
-      executablePath = path.join(folderPath, 'chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium');
+      executablePath = path.join(folderPath, archiveName(this._platform, revision), 'Chromium.app', 'Contents', 'MacOS', 'Chromium');
     else if (this._platform === 'linux')
-      executablePath = path.join(folderPath, 'chrome-linux', 'chrome');
+      executablePath = path.join(folderPath, archiveName(this._platform, revision), 'chrome');
     else if (this._platform === 'win32' || this._platform === 'win64')
-      executablePath = path.join(folderPath, 'chrome-win32', 'chrome.exe');
+      executablePath = path.join(folderPath, archiveName(this._platform, revision), 'chrome.exe');
     else
-      throw 'Unsupported platform: ' + this._platform;
-    let url = downloadURLs[this._platform];
-    url = util.format(url, this._downloadHost, revision);
+      throw new Error('Unsupported platform: ' + this._platform);
+    const url = downloadURL(this._platform, this._downloadHost, revision);
     const local = fs.existsSync(folderPath);
     return {revision, executablePath, folderPath, local, url};
   }
@@ -184,7 +209,7 @@ function parseFolderPath(folderPath) {
   if (splits.length !== 2)
     return null;
   const [platform, revision] = splits;
-  if (!downloadURLs[platform])
+  if (!supportedPlatforms.includes(platform))
     return null;
   return {platform, revision};
 }
@@ -192,7 +217,7 @@ function parseFolderPath(folderPath) {
 /**
  * @param {string} url
  * @param {string} destinationPath
- * @param {?function(number, number)} progressCallback
+ * @param {?function(number, number):void} progressCallback
  * @return {!Promise}
  */
 function downloadFile(url, destinationPath, progressCallback) {
@@ -233,31 +258,47 @@ function downloadFile(url, destinationPath, progressCallback) {
  * @return {!Promise<?Error>}
  */
 function extractZip(zipPath, folderPath) {
-  return new Promise(fulfill => extract(zipPath, {dir: folderPath}, fulfill));
+  return new Promise((fulfill, reject) => extract(zipPath, {dir: folderPath}, err => {
+    if (err)
+      reject(err);
+    else
+      fulfill();
+  }));
 }
 
 function httpRequest(url, method, response) {
   /** @type {Object} */
-  const options = URL.parse(url);
+  let options = URL.parse(url);
   options.method = method;
 
   const proxyURL = getProxyForUrl(url);
   if (proxyURL) {
-    /** @type {Object} */
-    const parsedProxyURL = URL.parse(proxyURL);
-    parsedProxyURL.secureProxy = parsedProxyURL.protocol === 'https:';
+    if (url.startsWith('http:')) {
+      const proxy = URL.parse(proxyURL);
+      options = {
+        path: options.href,
+        host: proxy.hostname,
+        port: proxy.port,
+      };
+    } else {
+      /** @type {Object} */
+      const parsedProxyURL = URL.parse(proxyURL);
+      parsedProxyURL.secureProxy = parsedProxyURL.protocol === 'https:';
 
-    options.agent = new ProxyAgent(parsedProxyURL);
-    options.rejectUnauthorized = false;
+      options.agent = new ProxyAgent(parsedProxyURL);
+      options.rejectUnauthorized = false;
+    }
   }
 
-  const driver = options.protocol === 'https:' ? 'https' : 'http';
-  const request = require(driver).request(options, res => {
+  const requestCallback = res => {
     if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location)
       httpRequest(res.headers.location, method, response);
     else
       response(res);
-  });
+  };
+  const request = options.protocol === 'https:' ?
+    require('https').request(options, requestCallback) :
+    require('http').request(options, requestCallback);
   request.end();
   return request;
 }

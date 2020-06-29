@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 const {helper, assert} = require('./helper');
-const fs = require('fs');
-
-const openAsync = helper.promisify(fs.open);
-const writeAsync = helper.promisify(fs.write);
-const closeAsync = helper.promisify(fs.close);
 
 class Tracing {
   /**
@@ -31,9 +26,9 @@ class Tracing {
   }
 
   /**
-   * @param {!Object} options
+   * @param {!{path?: string, screenshots?: boolean, categories?: !Array<string>}} options
    */
-  async start(options) {
+  async start(options = {}) {
     assert(!this._recording, 'Cannot start recording trace while already recording trace.');
 
     const defaultCategories = [
@@ -42,58 +37,36 @@ class Tracing {
       'blink.console', 'blink.user_timing', 'latencyInfo', 'disabled-by-default-devtools.timeline.stack',
       'disabled-by-default-v8.cpu_profiler', 'disabled-by-default-v8.cpu_profiler.hires'
     ];
-    const categoriesArray = options.categories || defaultCategories;
+    const {
+      path = null,
+      screenshots = false,
+      categories = defaultCategories,
+    } = options;
 
-    if (options.screenshots)
-      categoriesArray.push('disabled-by-default-devtools.screenshot');
+    if (screenshots)
+      categories.push('disabled-by-default-devtools.screenshot');
 
-    this._path = options.path;
+    this._path = path;
     this._recording = true;
     await this._client.send('Tracing.start', {
       transferMode: 'ReturnAsStream',
-      categories: categoriesArray.join(',')
+      categories: categories.join(',')
     });
   }
 
+  /**
+   * @return {!Promise<!Buffer>}
+   */
   async stop() {
     let fulfill;
     const contentPromise = new Promise(x => fulfill = x);
     this._client.once('Tracing.tracingComplete', event => {
-      this._readStream(event.stream, this._path).then(fulfill);
+      helper.readProtocolStream(this._client, event.stream, this._path).then(fulfill);
     });
     await this._client.send('Tracing.end');
     this._recording = false;
     return contentPromise;
   }
-
-  /**
-   * @param {string} handle
-   * @param {string} path
-   */
-  async _readStream(handle, path) {
-    let eof = false;
-    let file;
-    if (path)
-      file = await openAsync(path, 'w');
-    const bufs = [];
-    while (!eof) {
-      const response = await this._client.send('IO.read', {handle});
-      eof = response.eof;
-      bufs.push(Buffer.from(response.data));
-      if (path)
-        await writeAsync(file, response.data);
-    }
-    if (path)
-      await closeAsync(file);
-    await this._client.send('IO.close', {handle});
-    let resultBuffer = null;
-    try {
-      resultBuffer = Buffer.concat(bufs);
-    } finally {
-      return resultBuffer;
-    }
-  }
 }
-helper.tracePublicAPI(Tracing);
 
 module.exports = Tracing;
