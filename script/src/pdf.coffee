@@ -38,7 +38,7 @@ pdf = ->
     res = await request(
       json: true,
       resolveWithFullResponse: true
-      uri: "http://#{CHROME_HEADLESS_HOST}:#{CHROME_HEADLESS_PORT}/json/version"
+      uri: endPoint
     )
 
     webSocket = res.body.webSocketDebuggerUrl
