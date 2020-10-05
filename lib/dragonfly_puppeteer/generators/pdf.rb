@@ -23,7 +23,7 @@ module DragonflyPuppeteer
 
         content.shell_generate(ext: format) do |path|
           pdf_opts['path'] = path
-          "#{node_command} #{script} #{Shellwords.escape(source)} '#{pdf_opts.to_json}' '#{goto_opts.to_json}' #{media_type} '#{http_headers.to_json}' '#{user_agent}' #{delay}"
+          "#{node_command} #{script} #{Base64.strict_encode64(source)} '#{pdf_opts.to_json}' '#{goto_opts.to_json}' #{media_type} '#{http_headers.to_json}' '#{user_agent}' #{delay}"
         end
 
         content.ext = format

@@ -7,7 +7,7 @@ CHROME_HEADLESS_PORT = process.env.CHROME_HEADLESS_PORT
 
 args = process.argv.slice(2)
 
-source = args[0]
+source = Buffer.from(args[0], "base64").toString("utf-8")
 pdfOptions = JSON.parse(args[1])
 gotoOptions = JSON.parse(args[2])
 mediaType = args[3]
